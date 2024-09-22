@@ -1,12 +1,10 @@
 package com.almeida.socialsyncapi.service;
 
-import com.almeida.socialsyncapi.domain.User;
+import com.almeida.socialsyncapi.dto.UserDTO;
 
 import java.util.Optional;
 
 public interface UserServiceInt {
 
-    public User createUser(User user);
-
-    public Optional<User> getUserById(String id);
+    public Optional<UserDTO> getUserById(String id);
 }

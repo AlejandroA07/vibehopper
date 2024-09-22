@@ -1,6 +1,7 @@
 package com.almeida.socialsyncapi.controller;
 
 import com.almeida.socialsyncapi.domain.User;
+import com.almeida.socialsyncapi.dto.UserDTO;
 import com.almeida.socialsyncapi.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,15 +21,21 @@ public class UserController {
     }
 
     @PostMapping("/insert")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User newUser = userService.createUser(user);
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+        UserDTO newUser = userService.createUser(userDTO);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable String id) {
-        Optional<User> user = userService.getUserById(id);
-        return user.map(ResponseEntity::ok)
+    public ResponseEntity<UserDTO> getUserById(@PathVariable String id) {
+        Optional<UserDTO> userDTO = userService.getUserById(id);
+        return userDTO.map(ResponseEntity::ok)
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @DeleteMapping("del/user/{id}")
+    public ResponseEntity<Void> deleteUserById(@PathVariable String id) {
+        userService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
