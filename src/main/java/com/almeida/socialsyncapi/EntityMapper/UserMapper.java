@@ -1,4 +1,4 @@
-package com.almeida.socialsyncapi.infrastructure.mapper;
+package com.almeida.socialsyncapi.EntityMapper;
 
 import com.almeida.socialsyncapi.domain.User;
 import com.almeida.socialsyncapi.dto.UserDTO;

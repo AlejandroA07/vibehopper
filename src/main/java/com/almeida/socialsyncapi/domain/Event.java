@@ -27,7 +27,9 @@ public class Event {
     private LocalDate updated;
     private boolean recurring;
     private LocalDate date;
-    private TimeDetails timeDetails;
+    private WeekDays weekday;
+    private LocalTime startsAt;
+    private LocalTime endsAt;
     private int capacity;
     private boolean passed;
     private boolean active;
@@ -35,8 +37,8 @@ public class Event {
     private List<String> images;
     private List<String> attendees;
 
+    public Event() {}
 
-    //Private constructor for builder
     private Event(EventBuilder builder) {
         this.eventId = builder.eventId;
         this.city = builder.city;
@@ -52,7 +54,9 @@ public class Event {
         this.updated = builder.updated;
         this.recurring = builder.recurring;
         this.date = builder.date;
-        this.timeDetails = builder.timeDetails;
+        this.weekday = builder.weekday;
+        this.startsAt = builder.startsAt;
+        this.endsAt = builder.endsAt;
         this.capacity = builder.capacity;
         this.passed = builder.passed;
         this.active = builder.active;
@@ -77,7 +81,9 @@ public class Event {
         private LocalDate updated;
         private boolean recurring;
         private LocalDate date;
-        private TimeDetails timeDetails;
+        private WeekDays weekday;
+        private LocalTime startsAt;
+        private LocalTime endsAt;
         private int capacity;
         private boolean passed;
         private boolean active;
@@ -155,8 +161,18 @@ public class Event {
             return this;
         }
 
-        public EventBuilder timeDetails(TimeDetails timeDetails) {
-            this.timeDetails = timeDetails;
+        public EventBuilder weekday(WeekDays weekday) {
+            this.weekday = weekday;
+            return this;
+        }
+
+        public EventBuilder startsAt(LocalTime startsAt) {
+            this.startsAt = startsAt;
+            return this;
+        }
+
+        public EventBuilder endsAt(LocalTime endsAt) {
+            this.endsAt = endsAt;
             return this;
         }
 
@@ -200,38 +216,6 @@ public class Event {
         return new EventBuilder();
     }
 
-    public static class TimeDetails {
-        private WeekDays weekday;
-        private LocalTime startsAt;
-        private LocalTime endsAt;
-
-        // Getters and Setters
-        public WeekDays getWeekday() {
-            return weekday;
-        }
-
-        public void setWeekday(WeekDays weekday) {
-            this.weekday = weekday;
-        }
-
-        public LocalTime getStartsAt() {
-            return startsAt;
-        }
-
-        public void setStartsAt(LocalTime startsAt) {
-            this.startsAt = startsAt;
-        }
-
-        public LocalTime getEndsAt() {
-            return endsAt;
-        }
-
-        public void setEndsAt(LocalTime endsAt) {
-            this.endsAt = endsAt;
-        }
-    }
-
-
     // Getters and Setters for the main class
     public String getEventId() {
         return eventId;
@@ -240,6 +224,7 @@ public class Event {
     public void setEventId(String eventId) {
         this.eventId = eventId;
     }
+
 
     public String getCity() {
         return city;
@@ -345,12 +330,28 @@ public class Event {
         this.date = date;
     }
 
-    public TimeDetails getTimeDetails() {
-        return timeDetails;
+    public WeekDays getWeekday() {
+        return weekday;
     }
 
-    public void setTimeDetails(TimeDetails timeDetails) {
-        this.timeDetails = timeDetails;
+    public void setWeekday(WeekDays weekday) {
+        this.weekday = weekday;
+    }
+
+    public LocalTime getStartsAt() {
+        return startsAt;
+    }
+
+    public void setStartsAt(LocalTime startsAt) {
+        this.startsAt = startsAt;
+    }
+
+    public LocalTime getEndsAt() {
+        return endsAt;
+    }
+
+    public void setEndsAt(LocalTime endsAt) {
+        this.endsAt = endsAt;
     }
 
     public int getCapacity() {
