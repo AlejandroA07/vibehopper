@@ -8,7 +8,10 @@ import com.almeida.socialsyncapi.service.UserServiceInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserServiceInt {
@@ -22,6 +25,12 @@ public class UserService implements UserServiceInt {
         this.userMapper = userMapper;
     }
 
+    public UserDTO createUser(UserDTO userDTO) {
+        User user = userMapper.toEntity(userDTO);
+        User savedUser = userRepository.save(user);
+        return userMapper.toDTO(savedUser);
+    }
+
     @Override
     public Optional<UserDTO> getUserById(String id) {
 
@@ -29,10 +38,31 @@ public class UserService implements UserServiceInt {
                 .map(userMapper::toDTO);
     }
 
-    public UserDTO createUser(UserDTO userDTO) {
-        User user = userMapper.toEntity(userDTO);
-        User savedUser = userRepository.save(user);
-        return userMapper.toDTO(savedUser);
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public UserDTO updateUser(String id, UserDTO userDTO) {
+
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+
+        User updatedUser = new User.UserBuilder()
+                .setId(existingUser.getId())
+                .setName(userDTO.name() != null ? userDTO.name() : existingUser.getName())
+                .setEmail(userDTO.email() != null ? userDTO.email() : existingUser.getEmail())
+                .setPassword(existingUser.getPassword())
+                .build();
+
+
+        userRepository.save(updatedUser);
+
+
+        return userMapper.toDTO(updatedUser);
     }
 
     public void deleteById(String id) {
