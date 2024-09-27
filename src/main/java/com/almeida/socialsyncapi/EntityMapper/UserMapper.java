@@ -22,4 +22,13 @@ public class UserMapper {
                 .setEmail(userDTO.email())
                 .build();
     }
+
+    public static User updateUserFromDTO(User existingUser, UserDTO userDTO) {
+        return new User.UserBuilder()
+                .setId(existingUser.getId())
+                .setName(userDTO.name() != null ? userDTO.name() : existingUser.getName())
+                .setEmail(userDTO.email() != null ? userDTO.email() : existingUser.getEmail())
+                .setPassword(existingUser.getPassword())
+                .build();
+    }
 }

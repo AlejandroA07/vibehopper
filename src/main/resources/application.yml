@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: socialsyncapi
+  data:
+    mongodb:
+      uri: mongodb+srv://almeidaleiva:${mongoDB_password}@socialsynccluster.2hzbo.mongodb.net/?retryWrites=true&w=majority&appName=SocialSyncCluster
+      database: socialsyncdb

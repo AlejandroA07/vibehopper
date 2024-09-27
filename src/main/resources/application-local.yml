@@ -1,0 +1,2 @@
+mongodbUri: mongodb+srv://almeidaleiva:${mongoDB_password}@socialsynccluster.2hzbo.mongodb.net/?retryWrites=true&w=majority&appName=SocialSyncCluster
+mongodbDatabase: socialsyncdb

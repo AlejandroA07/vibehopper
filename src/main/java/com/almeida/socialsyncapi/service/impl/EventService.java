@@ -46,6 +46,18 @@ public class EventService {
                 .map(readEventMapper::toDTO);
     }
 
+    public EventOwnerDTO updateEvent(EventOwnerDTO eventRequest) {
+        Event existingEvent = eventRepository.findById(eventRequest.eventId())
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventRequest.eventId()));
+
+        //Add logger
+
+        Event updatedEvent = EventOwnerDTOMapper.updateEventFromRequest(eventRequest, existingEvent);
+        eventRepository.save(updatedEvent);
+        return EventOwnerDTOMapper.toEventOwnerDTO(updatedEvent);
+
+    }
+
     //Delete Method
     public void deleteById(String id) { eventRepository.deleteById(id); }
 

@@ -38,10 +38,15 @@ public class EventController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    //@PutMapping("/edit/{id}")
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<EventOwnerDTO> updateEvent(@RequestBody EventOwnerDTO eventRequest) {
+        EventOwnerDTO updatedEvent = eventService.updateEvent(eventRequest);
+        return ResponseEntity.ok(updatedEvent);
+    }
+
 
     @DeleteMapping("/del/event/{id}")
-    public ResponseEntity<Void> deletEventById(@PathVariable String id) {
+    public ResponseEntity<Void> deleteEventById(@PathVariable String id) {
         eventService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
