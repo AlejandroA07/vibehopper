@@ -11,21 +11,23 @@ import java.util.Collection;
 import java.util.List;
 
 @Document(collection = "users")
-public class User implements UserDetails {
+public class AppUser implements UserDetails {
 
     @Id
     private String id;
     private String name;
     private String email;
     private String password;
+    private Role role;
 
-    public User() {}
+    public AppUser() {}
 
-    private User(UserBuilder builder) {
+    private AppUser(UserBuilder builder) {
         this.id = builder.id;
         this.name = builder.name;
         this.email = builder.email;
         this.password = builder.password;
+        this.role = builder.role;
     }
 
     public String getId() {
@@ -40,13 +42,14 @@ public class User implements UserDetails {
         return email;
     }
 
-    private Role role;
+    public Role getRole() { return role; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
+    @Override
     public String getPassword() {
         return password;
     }
@@ -56,9 +59,12 @@ public class User implements UserDetails {
         return email;
     }
 
-
+    public static UserBuilder builder() {
+        return new UserBuilder();
+    }
 
     public static class UserBuilder {
+        public Role role;
         private String id;
         private String name;
         private String email;
@@ -84,8 +90,13 @@ public class User implements UserDetails {
             return this;
         }
 
-        public User build() {
-            return new User(this);
+        public UserBuilder setRole(Role role) {
+            this.role = role;
+            return this;
+        }
+
+        public AppUser build() {
+            return new AppUser(this);
         }
     }
 }

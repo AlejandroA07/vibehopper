@@ -1,34 +1,34 @@
 package com.almeida.socialsyncapi.infrastructure.EntityMapper;
 
-import com.almeida.socialsyncapi.domain.User;
-import com.almeida.socialsyncapi.infrastructure.dto.UserDTO;
+import com.almeida.socialsyncapi.domain.AppUser;
+import com.almeida.socialsyncapi.infrastructure.dto.AppUserDTO;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserMapper {
-    public UserDTO toDTO(User user) {
-        return new UserDTO(
-                user.getId(),
-                user.getName(),
-                user.getEmail()
+    public AppUserDTO toDTO(AppUser appUser) {
+        return new AppUserDTO(
+                appUser.getId(),
+                appUser.getName(),
+                appUser.getEmail()
         );
     }
 
 
-    public User toEntity(UserDTO userDTO) {
-        return new User.UserBuilder()
-                .setId(userDTO.id())
-                .setName(userDTO.name())
-                .setEmail(userDTO.email())
+    public AppUser toEntity(AppUserDTO appUserDTO) {
+        return new AppUser.UserBuilder()
+                .setId(appUserDTO.id())
+                .setName(appUserDTO.name())
+                .setEmail(appUserDTO.email())
                 .build();
     }
 
-    public static User updateUserFromDTO(User existingUser, UserDTO userDTO) {
-        return new User.UserBuilder()
-                .setId(existingUser.getId())
-                .setName(userDTO.name() != null ? userDTO.name() : existingUser.getName())
-                .setEmail(userDTO.email() != null ? userDTO.email() : existingUser.getEmail())
-                .setPassword(existingUser.getPassword())
+    public static AppUser updateUserFromDTO(AppUser existingAppUser, AppUserDTO appUserDTO) {
+        return new AppUser.UserBuilder()
+                .setId(existingAppUser.getId())
+                .setName(appUserDTO.name() != null ? appUserDTO.name() : existingAppUser.getName())
+                .setEmail(appUserDTO.email() != null ? appUserDTO.email() : existingAppUser.getEmail())
+                .setPassword(existingAppUser.getPassword())
                 .build();
     }
 }

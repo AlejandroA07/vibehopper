@@ -1,6 +1,6 @@
 package com.almeida.socialsyncapi.infrastructure.dto;
 
-public record UserDTO(
+public record AppUserDTO(
         String id,
         String name,
         String email
