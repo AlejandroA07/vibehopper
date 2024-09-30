@@ -29,6 +29,10 @@ public class AuthenticationService {
 
     public AuthenticationResponse register(RegisterRequest request) {
 
+        if (appUserRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalStateException("Email already in use");
+        }
+
         var encodedPassword = passwordEncoder.encode(request.getPassword());
 
         var user = AppUser.builder()
@@ -52,7 +56,7 @@ public class AuthenticationService {
                 )
         );
         var user = appUserRepository.findByEmail(request.getEmail())
-                .orElseThrow(); // make the correct exception
+                .orElseThrow(() -> new RuntimeException("User not found")); // make the correct exception
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
