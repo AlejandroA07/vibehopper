@@ -1,8 +1,8 @@
-package com.almeida.socialsyncapi.service.impl;
+package com.almeida.socialsyncapi.service;
 
 import com.almeida.socialsyncapi.domain.User;
-import com.almeida.socialsyncapi.dto.UserDTO;
-import com.almeida.socialsyncapi.EntityMapper.UserMapper;
+import com.almeida.socialsyncapi.infrastructure.dto.UserDTO;
+import com.almeida.socialsyncapi.infrastructure.EntityMapper.UserMapper;
 import com.almeida.socialsyncapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

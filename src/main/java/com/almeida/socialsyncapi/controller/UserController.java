@@ -1,8 +1,8 @@
 package com.almeida.socialsyncapi.controller;
 
 
-import com.almeida.socialsyncapi.dto.UserDTO;
-import com.almeida.socialsyncapi.service.impl.UserService;
+import com.almeida.socialsyncapi.infrastructure.dto.UserDTO;
+import com.almeida.socialsyncapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

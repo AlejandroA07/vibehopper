@@ -1,7 +1,7 @@
-package com.almeida.socialsyncapi.EntityMapper;
+package com.almeida.socialsyncapi.infrastructure.EntityMapper;
 
 import com.almeida.socialsyncapi.domain.User;
-import com.almeida.socialsyncapi.dto.UserDTO;
+import com.almeida.socialsyncapi.infrastructure.dto.UserDTO;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,4 +1,4 @@
-package com.almeida.socialsyncapi.dto;
+package com.almeida.socialsyncapi.infrastructure.dto;
 
 public record UserDTO(
         String id,

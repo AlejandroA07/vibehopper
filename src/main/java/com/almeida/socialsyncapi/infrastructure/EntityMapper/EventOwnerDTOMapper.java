@@ -1,7 +1,7 @@
-package com.almeida.socialsyncapi.EntityMapper;
+package com.almeida.socialsyncapi.infrastructure.EntityMapper;
 
 import com.almeida.socialsyncapi.domain.Event;
-import com.almeida.socialsyncapi.dto.EventOwnerDTO;
+import com.almeida.socialsyncapi.infrastructure.dto.EventOwnerDTO;
 import org.springframework.stereotype.Service;
 
 import static java.util.Objects.requireNonNullElse;

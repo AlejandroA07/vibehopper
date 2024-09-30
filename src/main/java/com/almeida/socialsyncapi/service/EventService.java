@@ -1,10 +1,10 @@
-package com.almeida.socialsyncapi.service.impl;
+package com.almeida.socialsyncapi.service;
 
 import com.almeida.socialsyncapi.domain.Event;
-import com.almeida.socialsyncapi.dto.EventOwnerDTO;
-import com.almeida.socialsyncapi.dto.ReadEventDTO;
-import com.almeida.socialsyncapi.EntityMapper.EventOwnerDTOMapper;
-import com.almeida.socialsyncapi.EntityMapper.ReadEventMapper;
+import com.almeida.socialsyncapi.infrastructure.dto.EventOwnerDTO;
+import com.almeida.socialsyncapi.infrastructure.dto.ReadEventDTO;
+import com.almeida.socialsyncapi.infrastructure.EntityMapper.EventOwnerDTOMapper;
+import com.almeida.socialsyncapi.infrastructure.EntityMapper.ReadEventMapper;
 import com.almeida.socialsyncapi.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

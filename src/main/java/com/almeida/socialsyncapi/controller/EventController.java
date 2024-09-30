@@ -1,8 +1,8 @@
 package com.almeida.socialsyncapi.controller;
 
-import com.almeida.socialsyncapi.dto.EventOwnerDTO;
-import com.almeida.socialsyncapi.dto.ReadEventDTO;
-import com.almeida.socialsyncapi.service.impl.EventService;
+import com.almeida.socialsyncapi.infrastructure.dto.EventOwnerDTO;
+import com.almeida.socialsyncapi.infrastructure.dto.ReadEventDTO;
+import com.almeida.socialsyncapi.service.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

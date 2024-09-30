@@ -1,4 +1,4 @@
-package com.almeida.socialsyncapi.dto;
+package com.almeida.socialsyncapi.infrastructure.dto;
 
 import com.almeida.socialsyncapi.domain.enums.Category;
 import com.almeida.socialsyncapi.domain.enums.CountryCode;
