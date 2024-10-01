@@ -9,7 +9,7 @@ public class AuthenticationRequest {
     }
 
     public AuthenticationRequest(String email, String password) {
-        this.email = email;
+        this.email = email;    //TODO Basic auth implementation
         this.password = password;
     }
 

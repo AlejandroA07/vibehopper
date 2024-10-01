@@ -19,6 +19,8 @@ public class AppUser implements UserDetails {
     private String email;
     private String password;
     private Role role;
+    private Boolean locked;
+    private Boolean enabled;
 
     public AppUser() {}
 
@@ -28,6 +30,8 @@ public class AppUser implements UserDetails {
         this.email = builder.email;
         this.password = builder.password;
         this.role = builder.role;
+        this.locked = builder.locked;
+        this.enabled = builder.enabled;
     }
 
     public String getId() {
@@ -43,6 +47,10 @@ public class AppUser implements UserDetails {
     }
 
     public Role getRole() { return role; }
+
+    public Boolean getLocked() { return locked; }
+
+    public Boolean getEnabled() { return enabled; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -64,11 +72,13 @@ public class AppUser implements UserDetails {
     }
 
     public static class UserBuilder {
-        public Role role;
         private String id;
         private String name;
         private String email;
         private String password;
+        public Role role;
+        private Boolean locked;
+        private Boolean enabled;
 
         public UserBuilder setId(String id) {
             this.id = id;
@@ -92,6 +102,16 @@ public class AppUser implements UserDetails {
 
         public UserBuilder setRole(Role role) {
             this.role = role;
+            return this;
+        }
+
+        public UserBuilder setLocked(Boolean locked) {
+            this.locked = locked;
+            return this;
+        }
+
+        public UserBuilder setEnabled(Boolean enabled) {
+            this.enabled = enabled;
             return this;
         }
 
