@@ -1,16 +1,16 @@
 package com.almeida.socialsyncapi.infrastructure.EntityMapper;
 
 import com.almeida.socialsyncapi.domain.Event;
-import com.almeida.socialsyncapi.infrastructure.dto.EventOwnerDTO;
+import com.almeida.socialsyncapi.infrastructure.dto.EventDTO;
 import org.springframework.stereotype.Service;
 
 import static java.util.Objects.requireNonNullElse;
 
 @Service
-public class EventOwnerDTOMapper {
-    public static EventOwnerDTO toEventOwnerDTO(Event event) {
+public class EventDTOMapper {
+    public static EventDTO toEventDTO(Event event) {
 
-        return new EventOwnerDTO(
+        return new EventDTO(
                 event.getEventId(),
                 event.getCity(),
                 event.getDescription(),
@@ -30,7 +30,7 @@ public class EventOwnerDTOMapper {
         );
     }
 
-    public static Event toEvent(EventOwnerDTO dto) {
+    public static Event toEvent(EventDTO dto) {
 
         return Event.builder()
                 .eventId(dto.eventId())
@@ -52,7 +52,7 @@ public class EventOwnerDTOMapper {
                 .build();
     }
 
-    public static Event updateEventFromRequest(EventOwnerDTO eventRequest, Event existingEvent) {
+    public static Event updateEventFromRequest(EventDTO eventRequest, Event existingEvent) {
         return Event.builder()
                 .eventId(existingEvent.getEventId())
                 .city(requireNonNullElse(eventRequest.city(), existingEvent.getCity()))

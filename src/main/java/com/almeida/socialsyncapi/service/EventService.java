@@ -1,12 +1,16 @@
 package com.almeida.socialsyncapi.service;
 
+import com.almeida.socialsyncapi.domain.AppUser;
 import com.almeida.socialsyncapi.domain.Event;
-import com.almeida.socialsyncapi.infrastructure.dto.EventOwnerDTO;
-import com.almeida.socialsyncapi.infrastructure.dto.ReadEventDTO;
-import com.almeida.socialsyncapi.infrastructure.EntityMapper.EventOwnerDTOMapper;
-import com.almeida.socialsyncapi.infrastructure.EntityMapper.ReadEventMapper;
+import com.almeida.socialsyncapi.infrastructure.dto.EventDTO;
+import com.almeida.socialsyncapi.infrastructure.EntityMapper.EventDTOMapper;
+import com.almeida.socialsyncapi.repository.AppUserRepository;
 import com.almeida.socialsyncapi.repository.EventRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,48 +21,68 @@ import java.util.stream.Collectors;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final ReadEventMapper readEventMapper;
-    private final EventOwnerDTOMapper eventOwnerDTOMapper;
+    private final AppUserRepository appUserRepository;
+    private static final Logger logger = LoggerFactory.getLogger(EventService.class);
 
     @Autowired
-    public EventService(EventRepository eventRepository, ReadEventMapper readEventMapper, EventOwnerDTOMapper eventOwnerDTOMapper) {
+    public EventService(EventRepository eventRepository, EventDTOMapper eventDTOMapper, AppUserRepository appUserRepository) {
         this.eventRepository = eventRepository;
-        this.readEventMapper = readEventMapper;
-        this.eventOwnerDTOMapper = eventOwnerDTOMapper;
+        this.appUserRepository = appUserRepository;
     }
 
-    public EventOwnerDTO createEvent(EventOwnerDTO eventOwnerDTO) {
-        Event event = eventOwnerDTOMapper.toEvent(eventOwnerDTO);
+    //CREATE
+    public EventDTO createEvent(EventDTO eventDTO) {
+        String ownerId = getCurrentUserId();
+        Event event = EventDTOMapper.toEvent(eventDTO);
+        event.setOwnerId(ownerId);
         Event savedEvent = eventRepository.save(event);
-        return eventOwnerDTOMapper.toEventOwnerDTO(savedEvent);
+        return EventDTOMapper.toEventDTO(savedEvent);
     }
 
-    public List<ReadEventDTO> getAllEvents() {
+    //GET ALL
+    public List<EventDTO> getAllEvents() {
         List<Event> events = eventRepository.findAll();
         return events.stream()
-                .map(readEventMapper::toDTO)
+                .map(EventDTOMapper::toEventDTO)
                 .collect(Collectors.toList());
     }
 
-    public Optional<ReadEventDTO> getEventById(String id) {
+    //GET BY ID
+    public Optional<EventDTO> getEventById(String id) {
 
         return eventRepository.findById(id)
-                .map(readEventMapper::toDTO);
+                .map(EventDTOMapper::toEventDTO);
     }
 
-    public EventOwnerDTO updateEvent(EventOwnerDTO eventRequest) {
+    //UPDATE
+    public EventDTO updateEvent(EventDTO eventRequest) {
         Event existingEvent = eventRepository.findById(eventRequest.eventId())
                 .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventRequest.eventId()));
 
-        //Add logger
+        logger.info("Updating event with id: {}", existingEvent.getEventId());
 
-        Event updatedEvent = EventOwnerDTOMapper.updateEventFromRequest(eventRequest, existingEvent);
+        Event updatedEvent = EventDTOMapper.updateEventFromRequest(eventRequest, existingEvent);
         eventRepository.save(updatedEvent);
-        return EventOwnerDTOMapper.toEventOwnerDTO(updatedEvent);
+        logger.info("Event updated successfully: {}", updatedEvent);
+
+        return EventDTOMapper.toEventDTO(updatedEvent);
 
     }
 
-    //Delete Method
+    //DELETE
     public void deleteById(String id) { eventRepository.deleteById(id); }
+
+
+    private String getCurrentUserId() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            String email = userDetails.getUsername();
+
+            AppUser user = appUserRepository.findByEmail(email)
+                    .orElseThrow(() -> new IllegalStateException("User not found"));
+            return user.getId();
+        }
+        throw new IllegalStateException("User is not authenticated");
+    }
 
 }
