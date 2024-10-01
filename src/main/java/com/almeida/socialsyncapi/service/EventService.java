@@ -1,10 +1,8 @@
 package com.almeida.socialsyncapi.service;
 
 import com.almeida.socialsyncapi.domain.Event;
-import com.almeida.socialsyncapi.infrastructure.dto.EventOwnerDTO;
-import com.almeida.socialsyncapi.infrastructure.dto.ReadEventDTO;
-import com.almeida.socialsyncapi.infrastructure.EntityMapper.EventOwnerDTOMapper;
-import com.almeida.socialsyncapi.infrastructure.EntityMapper.ReadEventMapper;
+import com.almeida.socialsyncapi.infrastructure.dto.EventDTO;
+import com.almeida.socialsyncapi.infrastructure.EntityMapper.EventDTOMapper;
 import com.almeida.socialsyncapi.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,44 +15,42 @@ import java.util.stream.Collectors;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final ReadEventMapper readEventMapper;
-    private final EventOwnerDTOMapper eventOwnerDTOMapper;
+    private final EventDTOMapper eventDTOMapper;
 
     @Autowired
-    public EventService(EventRepository eventRepository, ReadEventMapper readEventMapper, EventOwnerDTOMapper eventOwnerDTOMapper) {
+    public EventService(EventRepository eventRepository, EventDTOMapper eventDTOMapper) {
         this.eventRepository = eventRepository;
-        this.readEventMapper = readEventMapper;
-        this.eventOwnerDTOMapper = eventOwnerDTOMapper;
+        this.eventDTOMapper = eventDTOMapper;
     }
 
-    public EventOwnerDTO createEvent(EventOwnerDTO eventOwnerDTO) {
-        Event event = eventOwnerDTOMapper.toEvent(eventOwnerDTO);
+    public EventDTO createEvent(EventDTO eventDTO) {
+        Event event = eventDTOMapper.toEvent(eventDTO);
         Event savedEvent = eventRepository.save(event);
-        return eventOwnerDTOMapper.toEventOwnerDTO(savedEvent);
+        return eventDTOMapper.toEventDTO(savedEvent);
     }
 
-    public List<ReadEventDTO> getAllEvents() {
+    public List<EventDTO> getAllEvents() {
         List<Event> events = eventRepository.findAll();
         return events.stream()
-                .map(readEventMapper::toDTO)
+                .map(EventDTOMapper::toEventDTO)
                 .collect(Collectors.toList());
     }
 
-    public Optional<ReadEventDTO> getEventById(String id) {
+    public Optional<EventDTO> getEventById(String id) {
 
         return eventRepository.findById(id)
-                .map(readEventMapper::toDTO);
+                .map(EventDTOMapper::toEventDTO);
     }
 
-    public EventOwnerDTO updateEvent(EventOwnerDTO eventRequest) {
+    public EventDTO updateEvent(EventDTO eventRequest) {
         Event existingEvent = eventRepository.findById(eventRequest.eventId())
                 .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventRequest.eventId()));
 
         //Add logger
 
-        Event updatedEvent = EventOwnerDTOMapper.updateEventFromRequest(eventRequest, existingEvent);
+        Event updatedEvent = EventDTOMapper.updateEventFromRequest(eventRequest, existingEvent);
         eventRepository.save(updatedEvent);
-        return EventOwnerDTOMapper.toEventOwnerDTO(updatedEvent);
+        return EventDTOMapper.toEventDTO(updatedEvent);
 
     }
 
