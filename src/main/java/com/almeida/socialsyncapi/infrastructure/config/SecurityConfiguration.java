@@ -27,7 +27,17 @@ public class SecurityConfiguration {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/auth/**").permitAll() // Check the path later
+                        .requestMatchers(
+                                "/api/auth/register",
+                                "/api/auth/authenticate",
+                                "/api/user/{id}",
+                                "/api/event/events",
+                                "/api/event/{id}").permitAll()
+                        .requestMatchers("/api/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/api/event/insert",
+                                "/api/event/edit/{id}",
+                                "/api/event/del/{id}").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

@@ -1,11 +1,13 @@
 package com.almeida.socialsyncapi.controller;
 
 
+import com.almeida.socialsyncapi.domain.enums.Role;
 import com.almeida.socialsyncapi.infrastructure.dto.AppUserDTO;
 import com.almeida.socialsyncapi.service.AppUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,5 +55,12 @@ public class UserController {
     public ResponseEntity<Void> deleteUserById(@PathVariable String id) {
         appUserService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/changeRole/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AppUserDTO> changeUserRole(@PathVariable String id, @RequestParam Role role) {
+        AppUserDTO updatedUser = appUserService.changeUserRole(id, role);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 }

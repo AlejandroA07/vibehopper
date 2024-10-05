@@ -29,6 +29,8 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        //TODO add logic login or register request.
+
         return generateToken(new HashMap<>(), userDetails);
     }
 

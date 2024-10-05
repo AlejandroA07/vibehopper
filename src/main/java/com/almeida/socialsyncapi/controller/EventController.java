@@ -18,6 +18,7 @@ public class EventController {
     @Autowired
     public EventController(EventService eventService) { this.eventService = eventService; }
 
+
     @PostMapping("/insert")
     public ResponseEntity<EventDTO> createEvent(@RequestBody EventDTO eventDTO) {
         EventDTO newEvent = eventService.createEvent(eventDTO);
@@ -44,7 +45,7 @@ public class EventController {
     }
 
 
-    @DeleteMapping("/del/event/{id}")
+    @DeleteMapping("/del/{id}")
     public ResponseEntity<Void> deleteEventById(@PathVariable String id) {
         eventService.deleteById(id);
         return ResponseEntity.noContent().build();
