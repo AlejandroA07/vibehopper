@@ -1,14 +1,14 @@
 package com.almeida.socialsyncapi.repository;
 
-import com.almeida.socialsyncapi.domain.User;
+import com.almeida.socialsyncapi.domain.AppUser;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends MongoRepository<User, String> {
+public interface AppUserRepository extends MongoRepository<AppUser, String> {
 
-    //Optional<User> findById(String id);
+    Optional<AppUser> findByEmail(String email);
 
 }

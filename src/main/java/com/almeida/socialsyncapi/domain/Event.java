@@ -22,7 +22,7 @@ public class Event {
     private Category category;
     private CountryCode countryCode;
     private String host;
-    private String owner;
+    private String ownerId;
     private LocalDate created;
     private LocalDate updated;
     private boolean recurring;
@@ -49,7 +49,7 @@ public class Event {
         this.category = builder.category;
         this.countryCode = builder.countryCode;
         this.host = builder.host;
-        this.owner = builder.owner;
+        this.ownerId = builder.ownerId;
         this.created = builder.created;
         this.updated = builder.updated;
         this.recurring = builder.recurring;
@@ -76,7 +76,7 @@ public class Event {
         private Category category;
         private CountryCode countryCode;
         private String host;
-        private String owner;
+        private String ownerId;
         private LocalDate created;
         private LocalDate updated;
         private boolean recurring;
@@ -136,8 +136,8 @@ public class Event {
             return this;
         }
 
-        public EventBuilder owner(String owner) {
-            this.owner = owner;
+        public EventBuilder ownerId(String ownerId) {
+            this.ownerId = ownerId;
             return this;
         }
 
@@ -290,12 +290,12 @@ public class Event {
         this.host = host;
     }
 
-    public String getOwner() {
-        return owner;
+    public String getOwnerId() {
+        return ownerId;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
     }
 
     public LocalDate getCreated() {
