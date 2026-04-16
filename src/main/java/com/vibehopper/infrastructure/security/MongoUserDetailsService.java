@@ -1,0 +1,3 @@
+package com.vibehopper.infrastructure.security;
+import com.vibehopper.application.user.port.UserRepositoryPort; import org.springframework.security.core.userdetails.*; import org.springframework.stereotype.Service;
+@Service public class MongoUserDetailsService implements UserDetailsService { private final UserRepositoryPort users; public MongoUserDetailsService(UserRepositoryPort users){this.users=users;} public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException { return users.findByEmail(username).map(UserPrincipal::new).orElseThrow(()->new UsernameNotFoundException("User not found")); } }

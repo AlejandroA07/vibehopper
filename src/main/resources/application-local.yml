@@ -1,2 +1,18 @@
-mongodbUri: mongodb+srv://almeidaleiva:${mongoDB_password}@socialsynccluster.2hzbo.mongodb.net/?retryWrites=true&w=majority&appName=SocialSyncCluster
-mongodbDatabase: socialsyncdb
+spring:
+  application:
+    name: vibehopper
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/vibehopperdb?appName=VibeHopper}
+      database: ${MONGODB_DATABASE:vibehopperdb}
+      auto-index-creation: ${MONGODB_AUTO_INDEX_CREATION:false}
+
+vibehopper:
+  mongodb:
+    ensure-indexes: ${VIBEHOPPER_MONGODB_ENSURE_INDEXES:true}
+  security:
+    jwt:
+      secret: ${JWT_SECRET_KEY:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+      expiration: ${JWT_EXPIRATION:24h}
+  cors:
+    allowed-origins: ${FRONTEND_CORS_ORIGINS:http://localhost:5173}
