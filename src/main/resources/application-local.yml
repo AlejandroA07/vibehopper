@@ -1,15 +1,19 @@
 spring:
   application:
     name: vibehopper
-  data:
-    mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/vibehopperdb?appName=VibeHopper}
-      database: ${MONGODB_DATABASE:vibehopperdb}
-      auto-index-creation: ${MONGODB_AUTO_INDEX_CREATION:false}
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/vibehopperdb}
+    username: ${POSTGRES_USER:vibehopper}
+    password: ${POSTGRES_PASSWORD:vibehopper}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 vibehopper:
-  mongodb:
-    ensure-indexes: ${VIBEHOPPER_MONGODB_ENSURE_INDEXES:true}
   security:
     jwt:
       secret: ${JWT_SECRET_KEY:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}

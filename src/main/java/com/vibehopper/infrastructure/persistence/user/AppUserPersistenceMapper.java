@@ -1,3 +1,32 @@
 package com.vibehopper.infrastructure.persistence.user;
+
 import com.vibehopper.domain.user.AppUser;
-final class AppUserPersistenceMapper { private AppUserPersistenceMapper(){} static AppUser toDomain(AppUserDocument d){ return new AppUser(d.getId(),d.getName(),d.getEmail(),d.getPassword(),d.getRole(),d.isLocked(),d.isEnabled()); } static AppUserDocument toDocument(AppUser u){ AppUserDocument d=new AppUserDocument(); d.setId(u.id()); d.setName(u.name()); d.setEmail(u.email()); d.setPassword(u.password()); d.setRole(u.role()); d.setLocked(u.locked()); d.setEnabled(u.enabled()); return d; } }
+
+import java.util.UUID;
+
+final class AppUserPersistenceMapper {
+    private AppUserPersistenceMapper() {}
+
+    static AppUser toDomain(AppUserEntity entity) {
+        return new AppUser(
+                entity.getId().toString(),
+                entity.getName(),
+                entity.getEmail(),
+                entity.getPassword(),
+                entity.getRole(),
+                entity.isLocked(),
+                entity.isEnabled());
+    }
+
+    static AppUserEntity toEntity(AppUser user) {
+        AppUserEntity entity = new AppUserEntity();
+        entity.setId(user.id() == null ? UUID.randomUUID() : UUID.fromString(user.id()));
+        entity.setName(user.name());
+        entity.setEmail(user.email());
+        entity.setPassword(user.password());
+        entity.setRole(user.role());
+        entity.setLocked(user.locked());
+        entity.setEnabled(user.enabled());
+        return entity;
+    }
+}
