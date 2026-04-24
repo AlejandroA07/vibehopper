@@ -1,10 +1,125 @@
 package com.vibehopper.infrastructure.persistence.event;
-import com.vibehopper.domain.event.*; import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-final class EventPersistenceMapper { private EventPersistenceMapper(){}
-    static Event toDomain(EventDocument d){ return new Event(d.getId(),d.getCity(),d.getDescription(),d.getAddress(),d.getName(),d.getKeywords(),d.getCategory(),d.getCountryCode(),d.getHost(),d.getOwnerId(),d.getCreated(),d.getUpdated(),d.isRecurring(),d.getDate(),d.getWeekday(),d.getStartsAt(),d.getEndsAt(),d.getCapacity(),d.isPassed(),d.isActive(),d.isCancelled(),d.getImages(),d.getAttendees(),toDomainSource(d.getSource()),toDomainCoordinates(d.getCoordinates())); }
-    static EventDocument toDocument(Event e,String normalizedName,String normalizedCity){ EventDocument d=new EventDocument(); d.setId(e.id()); d.setCity(e.city()); d.setNormalizedCity(normalizedCity); d.setDescription(e.description()); d.setAddress(e.address()); d.setName(e.name()); d.setNormalizedName(normalizedName); d.setKeywords(e.keywords()); d.setCategory(e.category()); d.setCountryCode(e.countryCode()); d.setHost(e.host()); d.setOwnerId(e.ownerId()); d.setCreated(e.created()); d.setUpdated(e.updated()); d.setRecurring(e.recurring()); d.setDate(e.date()); d.setWeekday(e.weekday()); d.setStartsAt(e.startsAt()); d.setEndsAt(e.endsAt()); d.setCapacity(e.capacity()); d.setPassed(e.passed()); d.setActive(e.active()); d.setCancelled(e.cancelled()); d.setImages(e.images()); d.setAttendees(e.attendees()); d.setSource(toDocumentSource(e.source())); d.setCoordinates(toDocumentCoordinates(e.coordinates())); return d; }
-    private static EventSource toDomainSource(EventDocument.EventSourceDocument s){ return s==null?null:new EventSource(s.getSourceType(),s.getSourceName(),s.getExternalId(),s.getSourceUrl(),s.getLastSyncedAt()); }
-    private static EventDocument.EventSourceDocument toDocumentSource(EventSource s){ if(s==null)return null; EventDocument.EventSourceDocument d=new EventDocument.EventSourceDocument(); d.setSourceType(s.sourceType()); d.setSourceName(s.sourceName()); d.setExternalId(s.externalId()); d.setSourceUrl(s.sourceUrl()); d.setLastSyncedAt(s.lastSyncedAt()); return d; }
-    private static Coordinates toDomainCoordinates(GeoJsonPoint p){ return p==null?null:new Coordinates(p.getY(),p.getX()); }
-    private static GeoJsonPoint toDocumentCoordinates(Coordinates c){ return c==null?null:new GeoJsonPoint(c.longitude(),c.latitude()); }
+
+import com.vibehopper.domain.event.Coordinates;
+import com.vibehopper.domain.event.Event;
+import com.vibehopper.domain.event.EventSource;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.geom.Point;
+
+import java.util.List;
+import java.util.UUID;
+
+final class EventPersistenceMapper {
+    private static final int WGS84_SRID = 4326;
+    private static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), WGS84_SRID);
+
+    private EventPersistenceMapper() {}
+
+    static Event toDomain(EventEntity entity) {
+        return new Event(
+                entity.getId().toString(),
+                entity.getCity(),
+                entity.getDescription(),
+                entity.getAddress(),
+                entity.getName(),
+                entity.getKeywords(),
+                entity.getCategory(),
+                entity.getCountryCode(),
+                entity.getHost(),
+                entity.getOwnerId() == null ? null : entity.getOwnerId().toString(),
+                entity.getCreated(),
+                entity.getUpdated(),
+                entity.isRecurring(),
+                entity.getDate(),
+                entity.getWeekday(),
+                entity.getStartsAt(),
+                entity.getEndsAt(),
+                entity.getCapacity(),
+                entity.isPassed(),
+                entity.isActive(),
+                entity.isCancelled(),
+                entity.getImages(),
+                toDomainAttendees(entity.getAttendees()),
+                toDomainSource(entity),
+                toDomainCoordinates(entity.getLocation()));
+    }
+
+    static EventEntity toEntity(Event event, String normalizedName, String normalizedCity) {
+        EventEntity entity = new EventEntity();
+        entity.setId(event.id() == null ? UUID.randomUUID() : UUID.fromString(event.id()));
+        entity.setCity(event.city());
+        entity.setNormalizedCity(normalizedCity);
+        entity.setDescription(event.description());
+        entity.setAddress(event.address());
+        entity.setName(event.name());
+        entity.setNormalizedName(normalizedName);
+        entity.setKeywords(event.keywords());
+        entity.setCategory(event.category());
+        entity.setCountryCode(event.countryCode());
+        entity.setHost(event.host());
+        entity.setOwnerId(toUuid(event.ownerId()));
+        entity.setCreated(event.created());
+        entity.setUpdated(event.updated());
+        entity.setRecurring(event.recurring());
+        entity.setDate(event.date());
+        entity.setWeekday(event.weekday());
+        entity.setStartsAt(event.startsAt());
+        entity.setEndsAt(event.endsAt());
+        entity.setCapacity(event.capacity());
+        entity.setPassed(event.passed());
+        entity.setActive(event.active());
+        entity.setCancelled(event.cancelled());
+        entity.setImages(event.images());
+        entity.setAttendees(toEntityAttendees(event.attendees()));
+        setSource(entity, event.source());
+        entity.setLocation(toEntityLocation(event.coordinates()));
+        return entity;
+    }
+
+    static Point toEntityLocation(Coordinates coordinates) {
+        if (coordinates == null) {
+            return null;
+        }
+        Point point = GEOMETRY_FACTORY.createPoint(new Coordinate(coordinates.longitude(), coordinates.latitude()));
+        point.setSRID(WGS84_SRID);
+        return point;
+    }
+
+    static Coordinates toDomainCoordinates(Point point) {
+        return point == null ? null : new Coordinates(point.getY(), point.getX());
+    }
+
+    private static EventSource toDomainSource(EventEntity entity) {
+        if (entity.getSourceType() == null && entity.getSourceName() == null && entity.getExternalId() == null
+                && entity.getSourceUrl() == null && entity.getLastSyncedAt() == null) {
+            return null;
+        }
+        return new EventSource(entity.getSourceType(), entity.getSourceName(), entity.getExternalId(),
+                entity.getSourceUrl(), entity.getLastSyncedAt());
+    }
+
+    private static void setSource(EventEntity entity, EventSource source) {
+        if (source == null) {
+            return;
+        }
+        entity.setSourceType(source.sourceType());
+        entity.setSourceName(source.sourceName());
+        entity.setExternalId(source.externalId());
+        entity.setSourceUrl(source.sourceUrl());
+        entity.setLastSyncedAt(source.lastSyncedAt());
+    }
+
+    private static List<String> toDomainAttendees(List<UUID> attendees) {
+        return attendees == null ? List.of() : attendees.stream().map(UUID::toString).toList();
+    }
+
+    private static List<UUID> toEntityAttendees(List<String> attendees) {
+        return attendees == null ? List.of() : attendees.stream().map(EventPersistenceMapper::toUuid).toList();
+    }
+
+    private static UUID toUuid(String id) {
+        return id == null ? null : UUID.fromString(id);
+    }
 }

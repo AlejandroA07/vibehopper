@@ -4,65 +4,74 @@ import com.vibehopper.domain.user.AppUser;
 import com.vibehopper.domain.user.Role;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AppUserPersistenceAdapterTest {
-    @Mock private SpringDataAppUserRepository repository;
+    @Mock private AppUserJpaRepository repository;
 
     @Test
-    void saveMapsDomainToDocumentAndBack() {
+    void saveMapsDomainToEntityAndBack() {
         AppUserPersistenceAdapter adapter = new AppUserPersistenceAdapter(repository);
-        when(repository.save(any(AppUserDocument.class))).thenAnswer(invocation -> {
-            AppUserDocument document = invocation.getArgument(0);
-            document.setId("user-1");
-            return document;
-        });
+        ArgumentCaptor<AppUserEntity> captor = ArgumentCaptor.forClass(AppUserEntity.class);
+        when(repository.saveAndFlush(any(AppUserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AppUser saved = adapter.save(new AppUser(null, "Ada", "ada@example.com", "hash", Role.USER, false, true));
 
-        assertThat(saved.id()).isEqualTo("user-1");
+        verify(repository).saveAndFlush(captor.capture());
+        assertThat(captor.getValue().getId()).isNotNull();
+        assertThat(saved.id()).isNotBlank();
         assertThat(saved.email()).isEqualTo("ada@example.com");
-        verify(repository).save(any(AppUserDocument.class));
     }
 
     @Test
-    void findByEmailMapsDocumentToDomain() {
+    void findByEmailUsesCaseInsensitiveRepositoryQuery() {
         AppUserPersistenceAdapter adapter = new AppUserPersistenceAdapter(repository);
-        AppUserDocument document = new AppUserDocument();
-        document.setId("user-1");
-        document.setName("Ada");
-        document.setEmail("ada@example.com");
-        document.setPassword("hash");
-        document.setRole(Role.ADMIN);
-        document.setEnabled(true);
+        AppUserEntity entity = userEntity(Role.ADMIN);
+        when(repository.findByEmailIgnoreCase("Ada@Example.com")).thenReturn(Optional.of(entity));
 
-        when(repository.findByEmail("ada@example.com")).thenReturn(Optional.of(document));
-
-        assertThat(adapter.findByEmail("ada@example.com")).get().extracting(AppUser::role).isEqualTo(Role.ADMIN);
+        assertThat(adapter.findByEmail("Ada@Example.com")).get().extracting(AppUser::role).isEqualTo(Role.ADMIN);
     }
 
     @Test
-    void findAllMapsDocumentsToDomainUsers() {
+    void findAllMapsEntitiesToDomainUsers() {
         AppUserPersistenceAdapter adapter = new AppUserPersistenceAdapter(repository);
-        AppUserDocument document = new AppUserDocument();
-        document.setId("user-1");
-        document.setName("Ada");
-        document.setEmail("ada@example.com");
-        document.setPassword("hash");
-        document.setRole(Role.USER);
-        document.setEnabled(true);
-        when(repository.findAll()).thenReturn(List.of(document));
+        when(repository.findAll()).thenReturn(List.of(userEntity(Role.USER)));
 
         assertThat(adapter.findAll()).extracting(AppUser::email).containsExactly("ada@example.com");
+    }
+
+    @Test
+    void duplicateEmailConstraintMapsToConflictException() {
+        AppUserPersistenceAdapter adapter = new AppUserPersistenceAdapter(repository);
+        when(repository.saveAndFlush(any(AppUserEntity.class))).thenThrow(new DataIntegrityViolationException("duplicate"));
+
+        assertThatThrownBy(() -> adapter.save(new AppUser(null, "Ada", "ada@example.com", "hash", Role.USER, false, true)))
+                .isInstanceOf(com.vibehopper.application.common.ConflictException.class)
+                .hasMessage("Email already in use");
+    }
+
+    private AppUserEntity userEntity(Role role) {
+        AppUserEntity entity = new AppUserEntity();
+        entity.setId(UUID.randomUUID());
+        entity.setName("Ada");
+        entity.setEmail("ada@example.com");
+        entity.setPassword("hash");
+        entity.setRole(role);
+        entity.setEnabled(true);
+        return entity;
     }
 }
