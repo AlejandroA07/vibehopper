@@ -131,9 +131,12 @@ class EventControllerTest {
     }
 
     private Event event(String id) {
-        return new Event(id, "Stockholm", "Desc", "Central", "Meetup", List.of("tech"), Category.MEETUP,
-                CountryCode.SE, "Host", "user-1", LocalDate.now(), LocalDate.now(), false, LocalDate.of(2026, 4, 16),
-                null, null, null, 20, false, true, false, List.of(), List.of(), null, null);
+        return Event.builder()
+                .id(id).city("Stockholm").description("Desc").address("Central").name("Meetup")
+                .keywords(List.of("tech")).category(Category.MEETUP).countryCode(CountryCode.SE).host("Host")
+                .ownerId("user-1").created(LocalDate.now()).updated(LocalDate.now())
+                .date(LocalDate.of(2026, 4, 16)).capacity(20).active(true).images(List.of())
+                .build();
     }
 
     private UsernamePasswordAuthenticationToken authentication() {

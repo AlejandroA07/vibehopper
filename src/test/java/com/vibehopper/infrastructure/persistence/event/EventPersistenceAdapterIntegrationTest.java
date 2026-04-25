@@ -114,31 +114,12 @@ class EventPersistenceAdapterIntegrationTest extends PostgresContainerSupport {
                         "https://example.com/" + (externalId == null ? "event" : externalId),
                         Instant.parse("2026-04-16T10:15:30Z"));
 
-        return new Event(
-                null,
-                city,
-                "Integration test event",
-                "Central Station",
-                name,
-                keywords,
-                Category.MEETUP,
-                CountryCode.SE,
-                "VibeHopper",
-                null,
-                LocalDate.of(2026, 4, 1),
-                LocalDate.of(2026, 4, 2),
-                false,
-                LocalDate.of(2026, 4, 16),
-                null,
-                null,
-                null,
-                30,
-                false,
-                true,
-                false,
-                images,
-                List.of(),
-                source,
-                coordinates);
+        return Event.builder()
+                .city(city).description("Integration test event").address("Central Station").name(name)
+                .keywords(keywords).category(Category.MEETUP).countryCode(CountryCode.SE).host("VibeHopper")
+                .created(LocalDate.of(2026, 4, 1)).updated(LocalDate.of(2026, 4, 2))
+                .date(LocalDate.of(2026, 4, 16)).capacity(30).active(true)
+                .images(images).attendees(List.of()).source(source).coordinates(coordinates)
+                .build();
     }
 }

@@ -114,10 +114,13 @@ class EventPersistenceAdapterTest {
     }
 
     private Event event(String name, String city) {
-        return new Event(null, city, "Desc", "Central", name, List.of("tech"), Category.MEETUP, CountryCode.SE,
-                "Host", null, LocalDate.now(), LocalDate.now(), false, LocalDate.of(2026, 4, 16), null, null,
-                null, 20, false, true, false, List.of(), List.of(),
-                new EventSource(SourceType.API, "meetup", "123", "https://example.com", Instant.now()),
-                new Coordinates(59.3293, 18.0686));
+        return Event.builder()
+                .city(city).description("Desc").address("Central").name(name)
+                .keywords(List.of("tech")).category(Category.MEETUP).countryCode(CountryCode.SE).host("Host")
+                .created(LocalDate.now()).updated(LocalDate.now()).date(LocalDate.of(2026, 4, 16))
+                .capacity(20).active(true)
+                .source(new EventSource(SourceType.API, "meetup", "123", "https://example.com", Instant.now()))
+                .coordinates(new Coordinates(59.3293, 18.0686))
+                .build();
     }
 }

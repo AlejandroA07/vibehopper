@@ -5,16 +5,37 @@ public final class EventUseCase {
     private final EventRepositoryPort eventRepository; private final EventDeduplicationService deduplicationService;
     public EventUseCase(EventRepositoryPort eventRepository, EventDeduplicationService deduplicationService) { this.eventRepository=eventRepository; this.deduplicationService=deduplicationService; }
     public Event create(Event event, String ownerId) {
-        LocalDate now=LocalDate.now();
-        Event toSave=new Event(null,event.city(),event.description(),event.address(),event.name(),event.keywords(),event.category(),event.countryCode(),event.host(),ownerId,now,now,event.recurring(),event.date(),event.weekday(),event.startsAt(),event.endsAt(),event.capacity(),false,true,false,event.images(),event.attendees(),event.source()==null?EventSource.manual():event.source(),event.coordinates());
+        LocalDate now = LocalDate.now();
+        Event toSave = Event.builder()
+                .city(event.city()).description(event.description()).address(event.address())
+                .name(event.name()).keywords(event.keywords()).category(event.category())
+                .countryCode(event.countryCode()).host(event.host()).ownerId(ownerId)
+                .created(now).updated(now).recurring(event.recurring()).date(event.date())
+                .weekday(event.weekday()).startsAt(event.startsAt()).endsAt(event.endsAt())
+                .capacity(event.capacity()).passed(false).active(true).cancelled(false)
+                .images(event.images()).attendees(event.attendees())
+                .source(event.source() == null ? EventSource.manual() : event.source())
+                .coordinates(event.coordinates())
+                .build();
         if (deduplicationService.isDuplicate(toSave)) throw new ConflictException("Event already exists");
         return eventRepository.save(toSave);
     }
     public List<Event> findAll(){ return eventRepository.findAll(); }
     public Event findById(String id){ return eventRepository.findById(id).orElseThrow(() -> new NotFoundException("Event not found")); }
-    public Event update(String id, Event request){
-        Event e=findById(id);
-        Event updated=new Event(e.id(),v(request.city(),e.city()),v(request.description(),e.description()),v(request.address(),e.address()),v(request.name(),e.name()),v(request.keywords(),e.keywords()),v(request.category(),e.category()),v(request.countryCode(),e.countryCode()),v(request.host(),e.host()),e.ownerId(),e.created(),LocalDate.now(),request.recurring(),v(request.date(),e.date()),v(request.weekday(),e.weekday()),v(request.startsAt(),e.startsAt()),v(request.endsAt(),e.endsAt()),request.capacity()>0?request.capacity():e.capacity(),e.passed(),e.active(),e.cancelled(),v(request.images(),e.images()),e.attendees(),v(request.source(),e.source()),v(request.coordinates(),e.coordinates()));
+    public Event update(String id, Event request) {
+        Event e = findById(id);
+        Event updated = e.toBuilder()
+                .city(v(request.city(), e.city())).description(v(request.description(), e.description()))
+                .address(v(request.address(), e.address())).name(v(request.name(), e.name()))
+                .keywords(v(request.keywords(), e.keywords())).category(v(request.category(), e.category()))
+                .countryCode(v(request.countryCode(), e.countryCode())).host(v(request.host(), e.host()))
+                .updated(LocalDate.now()).recurring(request.recurring())
+                .date(v(request.date(), e.date())).weekday(v(request.weekday(), e.weekday()))
+                .startsAt(v(request.startsAt(), e.startsAt())).endsAt(v(request.endsAt(), e.endsAt()))
+                .capacity(request.capacity() > 0 ? request.capacity() : e.capacity())
+                .images(v(request.images(), e.images())).source(v(request.source(), e.source()))
+                .coordinates(v(request.coordinates(), e.coordinates()))
+                .build();
         return eventRepository.save(updated);
     }
     public void deleteById(String id){ findById(id); eventRepository.deleteById(id); }

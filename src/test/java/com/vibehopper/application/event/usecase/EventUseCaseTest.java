@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -61,14 +62,16 @@ class EventUseCaseTest {
     }
 
     private Event existingEvent() {
-        return new Event("event-1", "Stockholm", "Old", "Central", "Old name", List.of(), Category.MEETUP,
-                CountryCode.SE, "Host", "owner-1", LocalDate.now(), LocalDate.now(), false, LocalDate.now(), null,
-                null, null, 10, false, true, false, List.of(), List.of(), null, null);
+        return Event.builder()
+                .id("event-1").city("Stockholm").description("Old").address("Central").name("Old name")
+                .keywords(List.of()).category(Category.MEETUP).countryCode(CountryCode.SE).host("Host")
+                .ownerId("owner-1").created(LocalDate.now()).updated(LocalDate.now())
+                .date(LocalDate.now()).capacity(10).active(true)
+                .build();
     }
 
     private Event requestEvent(String name) {
-        return new Event(null, null, null, null, name, null, null, null, null, null, null, null, false, null, null,
-                null, null, 0, false, true, false, null, null, null, null);
+        return Event.builder().name(name).build();
     }
 
     private static final class FakeRepository implements EventRepositoryPort {

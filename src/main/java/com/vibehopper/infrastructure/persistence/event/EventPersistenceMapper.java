@@ -18,32 +18,19 @@ final class EventPersistenceMapper {
     private EventPersistenceMapper() {}
 
     static Event toDomain(EventEntity entity) {
-        return new Event(
-                entity.getId().toString(),
-                entity.getCity(),
-                entity.getDescription(),
-                entity.getAddress(),
-                entity.getName(),
-                entity.getKeywords(),
-                entity.getCategory(),
-                entity.getCountryCode(),
-                entity.getHost(),
-                entity.getOwnerId() == null ? null : entity.getOwnerId().toString(),
-                entity.getCreated(),
-                entity.getUpdated(),
-                entity.isRecurring(),
-                entity.getDate(),
-                entity.getWeekday(),
-                entity.getStartsAt(),
-                entity.getEndsAt(),
-                entity.getCapacity(),
-                entity.isPassed(),
-                entity.isActive(),
-                entity.isCancelled(),
-                entity.getImages(),
-                toDomainAttendees(entity.getAttendees()),
-                toDomainSource(entity),
-                toDomainCoordinates(entity.getLocation()));
+        return Event.builder()
+                .id(entity.getId().toString())
+                .city(entity.getCity()).description(entity.getDescription()).address(entity.getAddress())
+                .name(entity.getName()).keywords(entity.getKeywords()).category(entity.getCategory())
+                .countryCode(entity.getCountryCode()).host(entity.getHost())
+                .ownerId(entity.getOwnerId() == null ? null : entity.getOwnerId().toString())
+                .created(entity.getCreated()).updated(entity.getUpdated())
+                .recurring(entity.isRecurring()).date(entity.getDate()).weekday(entity.getWeekday())
+                .startsAt(entity.getStartsAt()).endsAt(entity.getEndsAt()).capacity(entity.getCapacity())
+                .passed(entity.isPassed()).active(entity.isActive()).cancelled(entity.isCancelled())
+                .images(entity.getImages()).attendees(toDomainAttendees(entity.getAttendees()))
+                .source(toDomainSource(entity)).coordinates(toDomainCoordinates(entity.getLocation()))
+                .build();
     }
 
     static EventEntity toEntity(Event event, String normalizedName, String normalizedCity) {
