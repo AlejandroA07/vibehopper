@@ -7,6 +7,12 @@ public record Event(
         boolean passed, boolean active, boolean cancelled, List<String> images, List<String> attendees,
         EventSource source, Coordinates coordinates) {
 
+    public Event {
+        keywords  = keywords  != null ? keywords  : List.of();
+        images    = images    != null ? images    : List.of();
+        attendees = attendees != null ? attendees : List.of();
+    }
+
     public static Builder builder() { return new Builder(); }
 
     public Builder toBuilder() {

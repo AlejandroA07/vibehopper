@@ -1,0 +1,2 @@
+com.vibehopper.infrastructure.config.DatabaseConnectionFailureAnalyzer
+com.vibehopper.infrastructure.config.DatabaseHostFailureAnalyzer
