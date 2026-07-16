@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
+	id 'com.diffplug.spotless' version '8.8.0'
 }
 
 group = 'com.almeida'
@@ -21,6 +22,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	//implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -34,4 +36,17 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+dependencyLocking {
+	lockAllConfigurations()
+}
+
+spotless {
+	java {
+		target 'src/**/*.java'
+		googleJavaFormat()
+		removeUnusedImports()
+		formatAnnotations()
+	}
 }
