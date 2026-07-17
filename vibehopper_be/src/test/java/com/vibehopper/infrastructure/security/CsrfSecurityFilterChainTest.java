@@ -19,10 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -39,10 +39,10 @@ class CsrfSecurityFilterChainTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
 
-  @MockBean private AuthenticationUseCase authenticationUseCase;
-  @MockBean private JwtService jwtService;
-  @MockBean private UserDetailsService userDetailsService;
-  @MockBean private CorsProperties corsProperties;
+  @MockitoBean private AuthenticationUseCase authenticationUseCase;
+  @MockitoBean private JwtService jwtService;
+  @MockitoBean private UserDetailsService userDetailsService;
+  @MockitoBean private CorsProperties corsProperties;
 
   @Test
   void csrfTokenEndpointIsPublicAndIssuesStrictHttpOnlyCookie() throws Exception {

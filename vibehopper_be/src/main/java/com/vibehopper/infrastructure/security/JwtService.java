@@ -6,10 +6,10 @@ import com.vibehopper.infrastructure.config.JwtProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import java.security.Key;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import javax.crypto.SecretKey;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -45,11 +45,11 @@ public class JwtService implements TokenIssuerPort {
   private String generateToken(Map<String, Object> claims, String subject) {
     Instant now = Instant.now();
     return Jwts.builder()
-        .setClaims(claims)
-        .setSubject(subject)
-        .setIssuedAt(Date.from(now))
-        .setExpiration(Date.from(now.plus(props.expiration())))
-        .signWith(signingKey(), SignatureAlgorithm.HS256)
+        .claims(claims)
+        .subject(subject)
+        .issuedAt(Date.from(now))
+        .expiration(Date.from(now.plus(props.expiration())))
+        .signWith(signingKey(), Jwts.SIG.HS256)
         .compact();
   }
 
@@ -58,10 +58,10 @@ public class JwtService implements TokenIssuerPort {
   }
 
   private Claims extractAllClaims(String token) {
-    return Jwts.parserBuilder().setSigningKey(signingKey()).build().parseClaimsJws(token).getBody();
+    return Jwts.parser().verifyWith(signingKey()).build().parseSignedClaims(token).getPayload();
   }
 
-  private Key signingKey() {
+  private SecretKey signingKey() {
     return Keys.hmacShaKeyFor(Decoders.BASE64.decode(props.secret()));
   }
 }

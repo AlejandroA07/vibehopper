@@ -33,12 +33,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(
@@ -54,12 +54,12 @@ class SecurityFilterChainTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
 
-  @MockBean private AuthenticationUseCase authenticationUseCase;
-  @MockBean private EventUseCase eventUseCase;
-  @MockBean private UserUseCase userUseCase;
-  @MockBean private JwtService jwtService;
-  @MockBean private UserDetailsService userDetailsService;
-  @MockBean private CorsProperties corsProperties;
+  @MockitoBean private AuthenticationUseCase authenticationUseCase;
+  @MockitoBean private EventUseCase eventUseCase;
+  @MockitoBean private UserUseCase userUseCase;
+  @MockitoBean private JwtService jwtService;
+  @MockitoBean private UserDetailsService userDetailsService;
+  @MockitoBean private CorsProperties corsProperties;
 
   @Test
   void anonymousUserCanReadEvents() throws Exception {
