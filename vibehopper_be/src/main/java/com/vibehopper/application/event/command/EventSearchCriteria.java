@@ -10,7 +10,9 @@ public record EventSearchCriteria(
     LocalDate to,
     Double latitude,
     Double longitude,
-    Double radiusKm) {
+    Double radiusKm,
+    int page,
+    int size) {
   public boolean hasGeoSearch() {
     return latitude != null || longitude != null || radiusKm != null;
   }

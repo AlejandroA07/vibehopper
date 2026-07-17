@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.vibehopper.application.event.command.EventSearchCriteria;
+import com.vibehopper.application.event.query.EventPage;
 import com.vibehopper.domain.event.Category;
 import com.vibehopper.domain.event.Coordinates;
 import com.vibehopper.domain.event.CountryCode;
@@ -34,7 +35,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 class EventPersistenceAdapterTest {
   @Mock private EventJpaRepository repository;
   @Mock private EntityManager entityManager;
-  @Mock private Query query;
+  @Mock private Query countQuery;
+  @Mock private Query resultQuery;
 
   @Test
   void saveStoresNormalizedDedupFieldsAndMapsBackToDomain() {
@@ -80,12 +82,16 @@ class EventPersistenceAdapterTest {
     EventEntity entity =
         EventPersistenceMapper.toEntity(event("Meetup", "Stockholm"), "meetup", "stockholm");
     ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> countSqlCaptor = ArgumentCaptor.forClass(String.class);
+    when(entityManager.createNativeQuery(countSqlCaptor.capture())).thenReturn(countQuery);
     when(entityManager.createNativeQuery(sqlCaptor.capture(), eq(EventEntity.class)))
-        .thenReturn(query);
-    when(query.setParameter(anyString(), any())).thenReturn(query);
-    when(query.getResultList()).thenReturn(List.of(entity));
+        .thenReturn(resultQuery);
+    when(countQuery.setParameter(anyString(), any())).thenReturn(countQuery);
+    when(resultQuery.setParameter(anyString(), any())).thenReturn(resultQuery);
+    when(countQuery.getSingleResult()).thenReturn(21L);
+    when(resultQuery.getResultList()).thenReturn(List.of(entity));
 
-    List<Event> result =
+    EventPage result =
         adapter.search(
             new EventSearchCriteria(
                 "Stockholm",
@@ -94,14 +100,29 @@ class EventPersistenceAdapterTest {
                 LocalDate.of(2026, 4, 17),
                 59.3,
                 18.0,
-                10.0));
+                10.0,
+                1,
+                20));
 
-    assertThat(result).extracting(Event::name).containsExactly("Meetup");
+    assertThat(result.items()).extracting(Event::name).containsExactly("Meetup");
+    assertThat(result.totalItems()).isEqualTo(21);
+    assertThat(result.totalPages()).isEqualTo(2);
+    assertThat(countSqlCaptor.getValue()).startsWith("select count(*)");
     assertThat(sqlCaptor.getValue())
-        .contains("ST_DWithin", "ST_Distance", ":lng", ":lat", ":radiusMeters");
-    verify(query).setParameter("city", "stockholm");
-    verify(query).setParameter("category", "MEETUP");
-    verify(query).setParameter("radiusMeters", 10_000.0);
+        .contains(
+            "ST_DWithin",
+            "ST_Distance",
+            ":lng",
+            ":lat",
+            ":radiusMeters",
+            "e.date asc",
+            "e.starts_at asc nulls last",
+            "e.id asc");
+    verify(resultQuery).setParameter("city", "stockholm");
+    verify(resultQuery).setParameter("category", "MEETUP");
+    verify(resultQuery).setParameter("radiusMeters", 10_000.0);
+    verify(resultQuery).setFirstResult(20);
+    verify(resultQuery).setMaxResults(20);
   }
 
   @Test

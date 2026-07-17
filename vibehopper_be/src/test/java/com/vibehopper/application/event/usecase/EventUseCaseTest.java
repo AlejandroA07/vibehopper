@@ -7,9 +7,13 @@ import com.vibehopper.application.common.ForbiddenException;
 import com.vibehopper.application.common.NotFoundException;
 import com.vibehopper.application.event.command.EventSearchCriteria;
 import com.vibehopper.application.event.port.EventRepositoryPort;
+import com.vibehopper.application.event.query.EventPage;
 import com.vibehopper.domain.event.Category;
 import com.vibehopper.domain.event.CountryCode;
 import com.vibehopper.domain.event.Event;
+import com.vibehopper.domain.event.EventSource;
+import com.vibehopper.domain.event.SourceType;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,15 +22,21 @@ import org.junit.jupiter.api.Test;
 
 class EventUseCaseTest {
   @Test
-  void updateUsesPathIdAndKeepsExistingOwner() {
+  void updateFullyReplacesEditableFieldsAndPreservesServerControlledFields() {
     FakeRepository repository = new FakeRepository(existingEvent());
     EventUseCase useCase = new EventUseCase(repository, new EventDeduplicationService(repository));
+    Event request = requestEvent("New name").toBuilder().capacity(0).host(null).build();
 
-    Event updated = useCase.update("event-1", requestEvent("New name"), "owner-1", false);
+    Event updated = useCase.update("event-1", request, "owner-1", false);
 
     assertThat(updated.id()).isEqualTo("event-1");
     assertThat(updated.name()).isEqualTo("New name");
+    assertThat(updated.capacity()).isZero();
+    assertThat(updated.host()).isNull();
     assertThat(updated.ownerId()).isEqualTo("owner-1");
+    assertThat(updated.attendees()).containsExactly("attendee-1");
+    assertThat(updated.source().externalId()).isEqualTo("external-1");
+    assertThat(updated.active()).isTrue();
   }
 
   @Test
@@ -70,27 +80,78 @@ class EventUseCaseTest {
 
   @Test
   void geoSearchRequiresLatitudeLongitudeAndRadiusTogether() {
-    FakeRepository repository = new FakeRepository(existingEvent());
-    EventUseCase useCase = new EventUseCase(repository, new EventDeduplicationService(repository));
+    EventUseCase useCase = useCase();
 
     assertThatThrownBy(
-            () -> useCase.search(new EventSearchCriteria(null, null, null, null, 59.3, null, 10.0)))
-        .isInstanceOf(IllegalArgumentException.class);
+            () ->
+                useCase.search(
+                    new EventSearchCriteria(null, null, null, null, 59.3, null, 10.0, 0, 20)))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("lat, lng and radiusKm must be provided together");
   }
 
   @Test
-  void createSetsOwnerLifecycleDefaultsAndManualSourceFallback() {
+  void searchRejectsInvertedDateRange() {
+    EventUseCase useCase = useCase();
+
+    assertThatThrownBy(
+            () ->
+                useCase.search(
+                    new EventSearchCriteria(
+                        null,
+                        null,
+                        LocalDate.of(2026, 4, 17),
+                        LocalDate.of(2026, 4, 16),
+                        null,
+                        null,
+                        null,
+                        0,
+                        20)))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("from must be on or before to");
+  }
+
+  @Test
+  void searchRejectsUnboundedPageInputsFromInternalCallers() {
+    EventUseCase useCase = useCase();
+
+    assertThatThrownBy(
+            () ->
+                useCase.search(
+                    new EventSearchCriteria(null, null, null, null, null, null, null, 0, 101)))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("size must be between 1 and 100");
+  }
+
+  @Test
+  void createSetsServerControlledOwnerLifecycleAttendeesAndManualSource() {
     FakeRepository repository = new FakeRepository(null);
     EventUseCase useCase = new EventUseCase(repository, new EventDeduplicationService(repository));
+    Event clientEvent =
+        requestEvent("Meetup").toBuilder()
+            .attendees(List.of("attacker-selected-user"))
+            .source(
+                new EventSource(
+                    SourceType.API,
+                    "client-source",
+                    "client-id",
+                    "https://example.com",
+                    Instant.now()))
+            .build();
 
-    Event created = useCase.create(requestEvent("Meetup"), "owner-1");
+    Event created = useCase.create(clientEvent, "owner-1");
 
     assertThat(created.ownerId()).isEqualTo("owner-1");
     assertThat(created.active()).isTrue();
     assertThat(created.created()).isNotNull();
     assertThat(created.updated()).isNotNull();
-    assertThat(created.source().sourceType())
-        .isEqualTo(com.vibehopper.domain.event.SourceType.MANUAL);
+    assertThat(created.attendees()).isEmpty();
+    assertThat(created.source().sourceType()).isEqualTo(SourceType.MANUAL);
+  }
+
+  private EventUseCase useCase() {
+    FakeRepository repository = new FakeRepository(existingEvent());
+    return new EventUseCase(repository, new EventDeduplicationService(repository));
   }
 
   private Event existingEvent() {
@@ -110,11 +171,31 @@ class EventUseCaseTest {
         .date(LocalDate.now())
         .capacity(10)
         .active(true)
+        .attendees(List.of("attendee-1"))
+        .source(
+            new EventSource(
+                SourceType.API,
+                "community-calendar",
+                "external-1",
+                "https://example.com/events/1",
+                Instant.parse("2026-04-16T10:15:30Z")))
         .build();
   }
 
   private Event requestEvent(String name) {
-    return Event.builder().name(name).build();
+    return Event.builder()
+        .city("Stockholm")
+        .description("Updated description")
+        .address("Central")
+        .name(name)
+        .keywords(List.of("tech"))
+        .category(Category.MEETUP)
+        .countryCode(CountryCode.SE)
+        .host("Updated host")
+        .date(LocalDate.of(2026, 4, 16))
+        .capacity(20)
+        .images(List.of())
+        .build();
   }
 
   private static final class FakeRepository implements EventRepositoryPort {
@@ -132,13 +213,8 @@ class EventUseCaseTest {
     }
 
     @Override
-    public List<Event> findAll() {
-      return event == null ? List.of() : List.of(event);
-    }
-
-    @Override
     public Optional<Event> findById(String id) {
-      return Optional.ofNullable(event).filter(e -> e.id().equals(id));
+      return Optional.ofNullable(event).filter(existing -> existing.id().equals(id));
     }
 
     @Override
@@ -147,8 +223,9 @@ class EventUseCaseTest {
     }
 
     @Override
-    public List<Event> search(EventSearchCriteria criteria) {
-      return List.of();
+    public EventPage search(EventSearchCriteria criteria) {
+      List<Event> items = event == null ? List.of() : List.of(event);
+      return new EventPage(items, criteria.page(), criteria.size(), items.size());
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.vibehopper.application.common.ConflictException;
 import com.vibehopper.application.common.NotFoundException;
 import com.vibehopper.application.event.command.EventSearchCriteria;
 import com.vibehopper.application.event.port.EventRepositoryPort;
+import com.vibehopper.application.event.query.EventPage;
 import com.vibehopper.domain.event.Event;
 import com.vibehopper.domain.event.EventSource;
 import java.time.LocalDate;
@@ -44,17 +45,13 @@ public final class EventUseCase {
             .active(true)
             .cancelled(false)
             .images(event.images())
-            .attendees(event.attendees())
-            .source(event.source() == null ? EventSource.manual() : event.source())
+            .attendees(List.of())
+            .source(EventSource.manual())
             .coordinates(event.coordinates())
             .build();
     if (deduplicationService.isDuplicate(toSave))
       throw new ConflictException("Event already exists");
     return eventRepository.save(toSave);
-  }
-
-  public List<Event> findAll() {
-    return eventRepository.findAll();
   }
 
   public Event findById(String id) {
@@ -66,24 +63,24 @@ public final class EventUseCase {
     ensureCanManage(e, requesterId, admin);
     Event updated =
         e.toBuilder()
-            .city(v(request.city(), e.city()))
-            .description(v(request.description(), e.description()))
-            .address(v(request.address(), e.address()))
-            .name(v(request.name(), e.name()))
-            .keywords(v(request.keywords(), e.keywords()))
-            .category(v(request.category(), e.category()))
-            .countryCode(v(request.countryCode(), e.countryCode()))
-            .host(v(request.host(), e.host()))
+            .city(request.city())
+            .description(request.description())
+            .address(request.address())
+            .name(request.name())
+            .keywords(request.keywords())
+            .category(request.category())
+            .countryCode(request.countryCode())
+            .host(request.host())
             .updated(LocalDate.now())
             .recurring(request.recurring())
-            .date(v(request.date(), e.date()))
-            .weekday(v(request.weekday(), e.weekday()))
-            .startsAt(v(request.startsAt(), e.startsAt()))
-            .endsAt(v(request.endsAt(), e.endsAt()))
-            .capacity(request.capacity() > 0 ? request.capacity() : e.capacity())
-            .images(v(request.images(), e.images()))
-            .source(v(request.source(), e.source()))
-            .coordinates(v(request.coordinates(), e.coordinates()))
+            .date(request.date())
+            .weekday(request.weekday())
+            .startsAt(request.startsAt())
+            .endsAt(request.endsAt())
+            .capacity(request.capacity())
+            .images(request.images())
+            .source(e.source())
+            .coordinates(request.coordinates())
             .build();
     return eventRepository.save(updated);
   }
@@ -94,17 +91,19 @@ public final class EventUseCase {
     eventRepository.deleteById(id);
   }
 
-  public List<Event> search(EventSearchCriteria criteria) {
+  public EventPage search(EventSearchCriteria criteria) {
     if (criteria.hasGeoSearch()
         && (criteria.latitude() == null
             || criteria.longitude() == null
             || criteria.radiusKm() == null))
       throw new IllegalArgumentException("lat, lng and radiusKm must be provided together");
+    if (criteria.from() != null && criteria.to() != null && criteria.from().isAfter(criteria.to()))
+      throw new IllegalArgumentException("from must be on or before to");
+    if (criteria.page() < 0 || criteria.page() > 10_000)
+      throw new IllegalArgumentException("page must be between 0 and 10000");
+    if (criteria.size() < 1 || criteria.size() > 100)
+      throw new IllegalArgumentException("size must be between 1 and 100");
     return eventRepository.search(criteria);
-  }
-
-  private static <T> T v(T value, T fallback) {
-    return value == null ? fallback : value;
   }
 
   private static void ensureCanManage(Event event, String requesterId, boolean admin) {

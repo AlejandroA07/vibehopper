@@ -7,7 +7,8 @@ import org.springframework.context.annotation.*;
 
 @Configuration
 public class OpenApiConfig {
-  private static final String BEARER_AUTH = "bearerAuth";
+  public static final String BEARER_AUTH = "bearerAuth";
+  public static final String CSRF_TOKEN = "csrfToken";
 
   @Bean
   OpenAPI vibehopperOpenApi() {
@@ -16,8 +17,8 @@ public class OpenApiConfig {
             new Info()
                 .title("VibeHopper API")
                 .version("v1")
-                .description("Backend API contract for VibeHopper events, auth and users."))
-        .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH))
+                .description(
+                    "Backend API contract for VibeHopper events, auth and users. Unsafe requests also require the cookie/header pair issued by GET /api/csrf."))
         .components(
             new Components()
                 .addSecuritySchemes(
@@ -26,6 +27,12 @@ public class OpenApiConfig {
                         .name(BEARER_AUTH)
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
-                        .bearerFormat("JWT")));
+                        .bearerFormat("JWT"))
+                .addSecuritySchemes(
+                    CSRF_TOKEN,
+                    new SecurityScheme()
+                        .name("X-XSRF-TOKEN")
+                        .type(SecurityScheme.Type.APIKEY)
+                        .in(SecurityScheme.In.HEADER)));
   }
 }

@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vibehopper.application.event.query.EventPage;
 import com.vibehopper.application.event.usecase.EventUseCase;
 import com.vibehopper.application.user.usecase.AuthenticationUseCase;
 import com.vibehopper.application.user.usecase.UserUseCase;
@@ -63,7 +64,7 @@ class SecurityFilterChainTest {
 
   @Test
   void anonymousUserCanReadEvents() throws Exception {
-    when(eventUseCase.findAll()).thenReturn(List.of());
+    when(eventUseCase.search(any())).thenReturn(new EventPage(List.of(), 0, 20, 0));
 
     mockMvc.perform(get("/api/events")).andExpect(status().isOk());
   }
@@ -225,8 +226,8 @@ class SecurityFilterChainTest {
         .andExpect(jsonPath("$.message").value("Authentication is required"));
   }
 
-  private EventDtos.EventRequest validEventRequest() {
-    return new EventDtos.EventRequest(
+  private EventDtos.CreateEventRequest validEventRequest() {
+    return new EventDtos.CreateEventRequest(
         "Stockholm",
         "Desc",
         "Central",
@@ -242,7 +243,6 @@ class SecurityFilterChainTest {
         null,
         20,
         List.of(),
-        null,
         null);
   }
 

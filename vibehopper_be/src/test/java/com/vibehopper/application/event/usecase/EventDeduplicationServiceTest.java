@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.vibehopper.application.event.command.EventSearchCriteria;
 import com.vibehopper.application.event.port.EventRepositoryPort;
+import com.vibehopper.application.event.query.EventPage;
 import com.vibehopper.domain.event.*;
 import java.time.*;
 import java.util.*;
@@ -54,18 +55,14 @@ class EventDeduplicationServiceTest {
       return e;
     }
 
-    public List<Event> findAll() {
-      return List.of();
-    }
-
     public Optional<Event> findById(String id) {
       return Optional.empty();
     }
 
     public void deleteById(String id) {}
 
-    public List<Event> search(EventSearchCriteria c) {
-      return List.of();
+    public EventPage search(EventSearchCriteria c) {
+      return new EventPage(List.of(), c.page(), c.size(), 0);
     }
 
     public boolean existsBySource(String s, String e) {
