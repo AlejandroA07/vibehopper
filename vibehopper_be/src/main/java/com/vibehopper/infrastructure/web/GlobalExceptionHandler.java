@@ -3,12 +3,17 @@ package com.vibehopper.infrastructure.web;
 import com.vibehopper.application.common.*;
 import com.vibehopper.infrastructure.web.dto.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.*;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,6 +50,37 @@ public class GlobalExceptionHandler {
             .map(f -> new FieldErrorResponse(f.getField(), f.getDefaultMessage()))
             .toList();
     return error(HttpStatus.BAD_REQUEST, "Validation failed", r, fields);
+  }
+
+  @ExceptionHandler({ConstraintViolationException.class, HandlerMethodValidationException.class})
+  ResponseEntity<ApiErrorResponse> parameterValidation(Exception e, HttpServletRequest r) {
+    return error(HttpStatus.BAD_REQUEST, "Validation failed", r, List.of());
+  }
+
+  @ExceptionHandler(TypeMismatchException.class)
+  ResponseEntity<ApiErrorResponse> invalidParameter(TypeMismatchException e, HttpServletRequest r) {
+    String field = e.getPropertyName() == null ? "parameter" : e.getPropertyName();
+    return error(
+        HttpStatus.BAD_REQUEST,
+        "Invalid request parameter",
+        r,
+        List.of(new FieldErrorResponse(field, "has an invalid value")));
+  }
+
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  ResponseEntity<ApiErrorResponse> missingParameter(
+      MissingServletRequestParameterException e, HttpServletRequest r) {
+    return error(
+        HttpStatus.BAD_REQUEST,
+        "Missing request parameter",
+        r,
+        List.of(new FieldErrorResponse(e.getParameterName(), "is required")));
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  ResponseEntity<ApiErrorResponse> malformedBody(
+      HttpMessageNotReadableException e, HttpServletRequest r) {
+    return error(HttpStatus.BAD_REQUEST, "Malformed request body", r, List.of());
   }
 
   private ResponseEntity<ApiErrorResponse> error(

@@ -3,6 +3,7 @@ package com.vibehopper.infrastructure.persistence.event;
 import com.vibehopper.application.common.ConflictException;
 import com.vibehopper.application.event.command.EventSearchCriteria;
 import com.vibehopper.application.event.port.EventRepositoryPort;
+import com.vibehopper.application.event.query.EventPage;
 import com.vibehopper.domain.event.Event;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -39,11 +40,6 @@ public class EventPersistenceAdapter implements EventRepositoryPort {
   }
 
   @Override
-  public List<Event> findAll() {
-    return repository.findAll().stream().map(EventPersistenceMapper::toDomain).toList();
-  }
-
-  @Override
   public Optional<Event> findById(String id) {
     return toUuid(id).flatMap(repository::findById).map(EventPersistenceMapper::toDomain);
   }
@@ -54,43 +50,57 @@ public class EventPersistenceAdapter implements EventRepositoryPort {
   }
 
   @Override
-  public List<Event> search(EventSearchCriteria criteria) {
-    StringBuilder sql = new StringBuilder("select e.* from events e where 1 = 1");
+  public EventPage search(EventSearchCriteria criteria) {
+    StringBuilder where = new StringBuilder(" from events e where 1 = 1");
     Map<String, Object> parameters = new LinkedHashMap<>();
 
     if (hasText(criteria.city())) {
-      sql.append(" and e.normalized_city = :city");
+      where.append(" and e.normalized_city = :city");
       parameters.put("city", normalize(criteria.city()));
     }
     if (criteria.category() != null) {
-      sql.append(" and e.category = :category");
+      where.append(" and e.category = :category");
       parameters.put("category", criteria.category().name());
     }
     if (criteria.from() != null) {
-      sql.append(" and e.date >= :fromDate");
+      where.append(" and e.date >= :fromDate");
       parameters.put("fromDate", criteria.from());
     }
     if (criteria.to() != null) {
-      sql.append(" and e.date <= :toDate");
+      where.append(" and e.date <= :toDate");
       parameters.put("toDate", criteria.to());
     }
     if (criteria.hasGeoSearch()) {
-      sql.append(" and e.location is not null");
-      sql.append(
+      where.append(" and e.location is not null");
+      where.append(
           " and ST_DWithin(e.location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :radiusMeters)");
-      sql.append(
-          " order by ST_Distance(e.location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) asc");
       parameters.put("lng", criteria.longitude());
       parameters.put("lat", criteria.latitude());
       parameters.put("radiusMeters", criteria.radiusKm() * 1000.0);
     }
 
-    Query query = entityManager.createNativeQuery(sql.toString(), EventEntity.class);
-    parameters.forEach(query::setParameter);
+    Query countQuery = entityManager.createNativeQuery("select count(*)" + where);
+    applyParameters(countQuery, parameters);
+    long totalItems = ((Number) countQuery.getSingleResult()).longValue();
+
+    StringBuilder select = new StringBuilder("select e.*").append(where);
+    if (criteria.hasGeoSearch()) {
+      select.append(
+          " order by ST_Distance(e.location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) asc,");
+    } else {
+      select.append(" order by");
+    }
+    select.append(" e.date asc, e.starts_at asc nulls last, e.id asc");
+
+    Query query = entityManager.createNativeQuery(select.toString(), EventEntity.class);
+    applyParameters(query, parameters);
+    query.setFirstResult(criteria.page() * criteria.size());
+    query.setMaxResults(criteria.size());
 
     @SuppressWarnings("unchecked")
     List<EventEntity> entities = query.getResultList();
-    return entities.stream().map(EventPersistenceMapper::toDomain).toList();
+    List<Event> items = entities.stream().map(EventPersistenceMapper::toDomain).toList();
+    return new EventPage(items, criteria.page(), criteria.size(), totalItems);
   }
 
   @Override
@@ -109,6 +119,10 @@ public class EventPersistenceAdapter implements EventRepositoryPort {
     } catch (RuntimeException exception) {
       return Optional.empty();
     }
+  }
+
+  private void applyParameters(Query query, Map<String, Object> parameters) {
+    parameters.forEach(query::setParameter);
   }
 
   private boolean hasText(String value) {

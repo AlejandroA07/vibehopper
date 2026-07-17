@@ -95,6 +95,30 @@ Database variables have dev-safe defaults. Set `JWT_SECRET_KEY` via OS environme
 
 Swagger UI available at `http://localhost:8080/swagger-ui/index.html` when the app is running.
 
+The canonical OpenAPI document used for frontend type generation is committed at
+`openapi/vibehopper-api.json`. After an intentional contract change, regenerate and review it:
+
+```bash
+cd vibehopper_be
+./gradlew exportOpenApi
+```
+
+Regular tests fail if the running contract drifts from this snapshot.
+
+### Public event reads
+
+- `GET /api/events` returns a bounded page with `items`, `page`, `size`, `totalItems`, and
+  `totalPages`.
+- Optional filters are `city`, `category`, `from`, `to`, `lat`, `lng`, and `radiusKm`.
+- `page` is zero-based (default `0`, maximum `10000`); `size` defaults to `20` and is capped at
+  `100`.
+- Geographic filtering requires `lat`, `lng`, and `radiusKm` together.
+- `GET /api/events/{id}` returns the public detail representation.
+
+Public responses omit owner identifiers, attendee identifiers, external ingestion identifiers,
+and synchronization metadata. Event writes use separate create and update contracts and reject
+unknown fields.
+
 ## CSRF protection
 
 Browser clients must obtain a CSRF token before sending `POST`, `PUT`, `PATCH`, or `DELETE`

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.vibehopper.application.common.ConflictException;
 import com.vibehopper.application.event.command.EventSearchCriteria;
+import com.vibehopper.application.event.query.EventPage;
 import com.vibehopper.domain.event.Category;
 import com.vibehopper.domain.event.Coordinates;
 import com.vibehopper.domain.event.CountryCode;
@@ -145,10 +146,39 @@ class EventPersistenceAdapterIntegrationTest extends PostgresContainerSupport {
             List.of("music"),
             List.of()));
 
-    List<Event> result =
-        adapter.search(new EventSearchCriteria(null, null, null, null, 59.3293, 18.0686, 10.0));
+    EventPage result =
+        adapter.search(
+            new EventSearchCriteria(null, null, null, null, 59.3293, 18.0686, 10.0, 0, 20));
 
-    assertThat(result).extracting(Event::id).containsExactly(nearby.id());
+    assertThat(result.items()).extracting(Event::id).containsExactly(nearby.id());
+    assertThat(result.totalItems()).isEqualTo(1);
+  }
+
+  @Test
+  void searchPaginatesWithStableCountsInRealPostgres() {
+    Event first =
+        adapter.save(event("First", "Stockholm", "source-1", "first", null, List.of(), List.of()));
+    Event second =
+        adapter.save(
+            event("Second", "Stockholm", "source-2", "second", null, List.of(), List.of()));
+    Event third =
+        adapter.save(event("Third", "Stockholm", "source-3", "third", null, List.of(), List.of()));
+
+    EventPage pageZero =
+        adapter.search(
+            new EventSearchCriteria("Stockholm", null, null, null, null, null, null, 0, 2));
+    EventPage pageOne =
+        adapter.search(
+            new EventSearchCriteria("Stockholm", null, null, null, null, null, null, 1, 2));
+
+    assertThat(pageZero.totalItems()).isEqualTo(3);
+    assertThat(pageZero.totalPages()).isEqualTo(2);
+    assertThat(pageZero.items()).hasSize(2);
+    assertThat(pageOne.items()).hasSize(1);
+    assertThat(
+            java.util.stream.Stream.concat(pageZero.items().stream(), pageOne.items().stream())
+                .map(Event::id))
+        .containsExactlyInAnyOrder(first.id(), second.id(), third.id());
   }
 
   private Event event(

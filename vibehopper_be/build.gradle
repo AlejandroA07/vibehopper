@@ -35,6 +35,17 @@ dependencies {
 
 tasks.named('test') { useJUnitPlatform() }
 
+tasks.register('exportOpenApi', Test) {
+    group = 'documentation'
+    description = 'Exports the canonical OpenAPI contract snapshot.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    include '**/OpenApiContractTest.class'
+    systemProperty 'vibehopper.openapi.update', 'true'
+    outputs.upToDateWhen { false }
+}
+
 dependencyLocking {
     lockAllConfigurations()
 }
