@@ -1,0 +1,19 @@
+package com.vibehopper.domain.event;
+
+public enum Category {
+  CONFERENCE,
+  WORKSHOP,
+  MEETUP,
+  WEBINAR,
+  PARTY,
+  NETWORKING,
+  SPORTS,
+  MUSIC,
+  ART,
+  TECH_TALK,
+  FESTIVAL,
+  FUNDRAISER,
+  SEMINAR,
+  EXPO,
+  OTHER
+}

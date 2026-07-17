@@ -1,0 +1,4 @@
+vibehopper:
+  security:
+    jwt:
+      secret: test-secret

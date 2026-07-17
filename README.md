@@ -1,93 +1,37 @@
-# VibeHopper Backend
+# vibehopper
 
-Spring Boot 3 REST API with PostgreSQL + PostGIS.
+vibehopper is a monorepo for the VibeHopper event discovery app.
 
-## Prerequisites
+```text
+vibehopper/
+  vibehopper_be/  Spring Boot API with PostgreSQL + PostGIS
+  vibehopper_fe/  frontend placeholder
+  scripts/        repository-level verification commands
+```
 
-- Java 17+
-- Gradle (or use `./gradlew`)
+## Current Status
 
-## Running the app
+- `vibehopper_be/` contains the active backend.
+- `vibehopper_fe/` has not been scaffolded yet.
+- Backend history is preserved from the original VibeHopper backend repository.
 
-### Option A — Docker (PostgreSQL in container)
+## Verify
 
-**Requires:** Docker Desktop running.
+Run the root gate before opening a pull request:
 
 ```bash
-docker compose up -d
-./gradlew bootRun --args='--spring.profiles.active=local'
+./scripts/verify.sh
 ```
 
-Stop the container when done:
+Backend-only:
 
 ```bash
-docker compose down
+cd vibehopper_be
+./scripts/verify.sh
 ```
 
----
+## Local Development
 
-### Option B — Local PostgreSQL (no Docker)
+Backend setup and API details live in [vibehopper_be/README.md](vibehopper_be/README.md).
 
-**Requires:** PostgreSQL 16+ with the PostGIS extension installed.
-On Windows, install PostGIS via Stack Builder after installing PostgreSQL.
-
-**One-time database setup** — run as the `postgres` superuser:
-
-```sql
-CREATE USER vibehopper WITH PASSWORD 'vibehopper';
-CREATE DATABASE vibehopperdb OWNER vibehopper;
-
-\c vibehopperdb
-
-CREATE EXTENSION IF NOT EXISTS postgis;
-GRANT ALL PRIVILEGES ON DATABASE vibehopperdb TO vibehopper;
-GRANT ALL ON SCHEMA public TO vibehopper;
-```
-
-From the command line (adjust path to your PostgreSQL install):
-
-```bash
-"C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -c "CREATE USER vibehopper WITH PASSWORD 'vibehopper';"
-"C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -c "CREATE DATABASE vibehopperdb OWNER vibehopper;"
-"C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -d vibehopperdb -c "CREATE EXTENSION IF NOT EXISTS postgis;"
-"C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -d vibehopperdb -c "GRANT ALL PRIVILEGES ON DATABASE vibehopperdb TO vibehopper;"
-"C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -d vibehopperdb -c "GRANT ALL ON SCHEMA public TO vibehopper;"
-```
-
-**Run the app:**
-
-```bash
-./gradlew bootRun --args='--spring.profiles.active=local'
-```
-
----
-
-## The `local` Spring profile
-
-Activating `local` enables `application-local.yml` on top of the base config:
-
-- SQL logging enabled (`show-sql: true`)
-- Debug logging for `com.vibehopper`
-
-Base config (`application.yml`) defaults are sufficient for both Docker and local development — both connect to `localhost:5432/vibehopperdb`.
-
----
-
-## Environment variables
-
-All variables have dev-safe defaults. Override via OS environment variables or Windows System Environment Variables for real secrets.
-
-| Variable | Default | Description |
-|---|---|---|
-| `POSTGRES_URL` | `jdbc:postgresql://localhost:5432/vibehopperdb` | JDBC connection URL |
-| `POSTGRES_USER` | `vibehopper` | Database user |
-| `POSTGRES_PASSWORD` | `vibehopper` | Database password |
-| `JWT_SECRET_KEY` | *(base64 dev key)* | JWT signing secret — **change in production** |
-| `JWT_EXPIRATION` | `24h` | JWT token lifetime |
-| `FRONTEND_CORS_ORIGINS` | `http://localhost:5173` | Allowed CORS origins |
-
----
-
-## API docs
-
-Swagger UI available at `http://localhost:8080/swagger-ui/index.html` when the app is running.
+The frontend should be built after the backend OpenAPI contract is stable enough to generate a client from `/v3/api-docs`.

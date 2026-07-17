@@ -1,0 +1,3 @@
+# Historical .env.example contained a non-production JWT example key before the
+# repository was prepared for public release. Current files no longer contain it.
+fb17241b5c6239b985ca41b12c26c7e775345a57:.env.example:generic-api-key:6
