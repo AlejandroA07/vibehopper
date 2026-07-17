@@ -1,0 +1,5 @@
+vibehopper:
+  security:
+    jwt:
+      secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      expiration: 24h

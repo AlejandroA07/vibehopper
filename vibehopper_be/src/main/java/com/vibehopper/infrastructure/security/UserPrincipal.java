@@ -1,0 +1,43 @@
+package com.vibehopper.infrastructure.security;
+
+import com.vibehopper.domain.user.AppUser;
+import java.util.*;
+import org.springframework.security.core.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+public final class UserPrincipal implements UserDetails {
+  private final AppUser user;
+
+  public UserPrincipal(AppUser user) {
+    this.user = user;
+  }
+
+  public String id() {
+    return user.id();
+  }
+
+  public AppUser user() {
+    return user;
+  }
+
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return List.of(new SimpleGrantedAuthority(user.role().authority()));
+  }
+
+  public String getPassword() {
+    return user.password();
+  }
+
+  public String getUsername() {
+    return user.email();
+  }
+
+  public boolean isAccountNonLocked() {
+    return !user.locked();
+  }
+
+  public boolean isEnabled() {
+    return user.enabled();
+  }
+}
