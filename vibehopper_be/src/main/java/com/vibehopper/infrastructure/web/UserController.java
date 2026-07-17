@@ -23,7 +23,7 @@ public class UserController {
     return ResponseEntity.ok(WebMapper.toResponse(users.findById(p.id())));
   }
 
-  @GetMapping("/api/users/{id}")
+  @GetMapping("/api/admin/users/{id}")
   public ResponseEntity<UserResponse> findById(@PathVariable String id) {
     return ResponseEntity.ok(WebMapper.toResponse(users.findById(id)));
   }

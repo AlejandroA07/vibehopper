@@ -43,6 +43,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-# Local planning and private documentation
-docs/

@@ -3,21 +3,21 @@ package com.vibehopper.support;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@Testcontainers(disabledWithoutDocker = true)
 public abstract class PostgresContainerSupport {
   private static final DockerImageName POSTGIS_IMAGE =
       DockerImageName.parse("postgis/postgis:16-3.4").asCompatibleSubstituteFor("postgres");
 
-  @Container
   private static final PostgreSQLContainer<?> POSTGRES =
       new PostgreSQLContainer<>(POSTGIS_IMAGE)
           .withDatabaseName("vibehopperdb")
           .withUsername("vibehopper")
           .withPassword("vibehopper");
+
+  static {
+    POSTGRES.start();
+  }
 
   @DynamicPropertySource
   static void configurePostgres(DynamicPropertyRegistry registry) {

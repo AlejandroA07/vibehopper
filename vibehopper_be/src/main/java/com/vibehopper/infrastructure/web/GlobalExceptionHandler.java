@@ -27,9 +27,14 @@ public class GlobalExceptionHandler {
     return error(HttpStatus.FORBIDDEN, e.getMessage(), r, List.of());
   }
 
-  @ExceptionHandler({IllegalArgumentException.class, BadCredentialsException.class})
-  ResponseEntity<ApiErrorResponse> badRequest(RuntimeException e, HttpServletRequest r) {
+  @ExceptionHandler(IllegalArgumentException.class)
+  ResponseEntity<ApiErrorResponse> badRequest(IllegalArgumentException e, HttpServletRequest r) {
     return error(HttpStatus.BAD_REQUEST, e.getMessage(), r, List.of());
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  ResponseEntity<ApiErrorResponse> unauthorized(BadCredentialsException e, HttpServletRequest r) {
+    return error(HttpStatus.UNAUTHORIZED, "Invalid email or password", r, List.of());
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

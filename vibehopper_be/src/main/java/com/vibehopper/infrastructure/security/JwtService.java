@@ -34,7 +34,12 @@ public class JwtService implements TokenIssuerPort {
   }
 
   public boolean isTokenValid(String token, UserDetails userDetails) {
-    return userDetails.getUsername().equals(extractUsername(token)) && !isTokenExpired(token);
+    return userDetails.isEnabled()
+        && userDetails.isAccountNonLocked()
+        && userDetails.isAccountNonExpired()
+        && userDetails.isCredentialsNonExpired()
+        && userDetails.getUsername().equals(extractUsername(token))
+        && !isTokenExpired(token);
   }
 
   private String generateToken(Map<String, Object> claims, String subject) {

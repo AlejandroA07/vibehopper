@@ -26,14 +26,20 @@ public class SecurityConfiguration {
   private final JwtAuthenticationFilter jwtFilter;
   private final UserDetailsService userDetailsService;
   private final CorsProperties cors;
+  private final RestAuthenticationEntryPoint authenticationEntryPoint;
+  private final RestAccessDeniedHandler accessDeniedHandler;
 
   public SecurityConfiguration(
       JwtAuthenticationFilter jwtFilter,
       UserDetailsService userDetailsService,
-      CorsProperties cors) {
+      CorsProperties cors,
+      RestAuthenticationEntryPoint authenticationEntryPoint,
+      RestAccessDeniedHandler accessDeniedHandler) {
     this.jwtFilter = jwtFilter;
     this.userDetailsService = userDetailsService;
     this.cors = cors;
+    this.authenticationEntryPoint = authenticationEntryPoint;
+    this.accessDeniedHandler = accessDeniedHandler;
   }
 
   @Bean
@@ -50,8 +56,6 @@ public class SecurityConfiguration {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/users/*")
-                    .permitAll()
                     .requestMatchers("/api/admin/**")
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/api/events")
@@ -62,6 +66,10 @@ public class SecurityConfiguration {
                     .hasAnyRole("USER", "ADMIN")
                     .anyRequest()
                     .authenticated())
+        .exceptionHandling(
+            e ->
+                e.authenticationEntryPoint(authenticationEntryPoint)
+                    .accessDeniedHandler(accessDeniedHandler))
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider())
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

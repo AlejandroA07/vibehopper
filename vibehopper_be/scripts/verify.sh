@@ -25,4 +25,9 @@ echo "[backend verify] 2/4 format"
 echo "[backend verify] 3/4 tests"
 "${gradle_cmd[@]}" --no-daemon test
 
+if grep -Rqs '<skipped' build/test-results/test; then
+  echo "[backend verify] FAILED: skipped tests are not allowed"
+  exit 1
+fi
+
 echo "[backend verify] ALL GREEN"

@@ -16,6 +16,8 @@ import com.vibehopper.domain.event.Category;
 import com.vibehopper.domain.event.CountryCode;
 import com.vibehopper.domain.event.Event;
 import com.vibehopper.infrastructure.security.JwtService;
+import com.vibehopper.infrastructure.security.RestAccessDeniedHandler;
+import com.vibehopper.infrastructure.security.RestAuthenticationEntryPoint;
 import com.vibehopper.infrastructure.security.UserPrincipal;
 import com.vibehopper.infrastructure.web.dto.EventDtos;
 import java.time.LocalDate;
@@ -27,6 +29,7 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,6 +40,7 @@ import org.springframework.test.web.servlet.MockMvc;
     controllers = EventController.class,
     excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import({RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class})
 class EventControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;

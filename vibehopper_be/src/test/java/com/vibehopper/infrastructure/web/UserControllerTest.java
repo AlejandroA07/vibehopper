@@ -11,6 +11,8 @@ import com.vibehopper.application.user.usecase.UserUseCase;
 import com.vibehopper.domain.user.AppUser;
 import com.vibehopper.domain.user.Role;
 import com.vibehopper.infrastructure.security.JwtService;
+import com.vibehopper.infrastructure.security.RestAccessDeniedHandler;
+import com.vibehopper.infrastructure.security.RestAuthenticationEntryPoint;
 import com.vibehopper.infrastructure.security.UserPrincipal;
 import com.vibehopper.infrastructure.web.dto.ChangeRoleRequest;
 import java.util.List;
@@ -21,6 +23,7 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +34,7 @@ import org.springframework.test.web.servlet.MockMvc;
     controllers = UserController.class,
     excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import({RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class})
 class UserControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
@@ -56,11 +60,11 @@ class UserControllerTest {
   }
 
   @Test
-  void getUserByIdReturnsUser() throws Exception {
+  void adminGetUserByIdReturnsUser() throws Exception {
     when(userUseCase.findById("user-1")).thenReturn(user(Role.USER));
 
     mockMvc
-        .perform(get("/api/users/user-1"))
+        .perform(get("/api/admin/users/user-1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value("user-1"));
   }
