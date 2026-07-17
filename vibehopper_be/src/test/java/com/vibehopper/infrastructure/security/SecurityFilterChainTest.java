@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,6 +24,7 @@ import com.vibehopper.infrastructure.config.CorsProperties;
 import com.vibehopper.infrastructure.web.AuthController;
 import com.vibehopper.infrastructure.web.EventController;
 import com.vibehopper.infrastructure.web.UserController;
+import com.vibehopper.infrastructure.web.dto.AuthDtos;
 import com.vibehopper.infrastructure.web.dto.EventDtos;
 import io.jsonwebtoken.MalformedJwtException;
 import java.time.LocalDate;
@@ -69,9 +71,56 @@ class SecurityFilterChainTest {
   @Test
   void anonymousUserCannotWriteEvents() throws Exception {
     mockMvc
-        .perform(post("/api/events").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .perform(
+            post("/api/events")
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.message").value("Authentication is required"));
+  }
+
+  @Test
+  void unsafeRequestWithoutCsrfTokenIsForbidden() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/events")
+                .with(authentication(principalAuthentication(Role.USER, false, true)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validEventRequest())))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").value("Access is denied"));
+  }
+
+  @Test
+  void registrationRequiresCsrfToken() throws Exception {
+    AuthDtos.RegisterRequest request =
+        new AuthDtos.RegisterRequest("Ada", "ada@example.com", "password123");
+
+    mockMvc
+        .perform(
+            post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").value("Access is denied"));
+  }
+
+  @Test
+  void registrationWithCsrfTokenSucceeds() throws Exception {
+    AuthDtos.RegisterRequest request =
+        new AuthDtos.RegisterRequest("Ada", "ada@example.com", "password123");
+    when(authenticationUseCase.register("Ada", "ada@example.com", "password123"))
+        .thenReturn("jwt-token");
+
+    mockMvc
+        .perform(
+            post("/api/auth/register")
+                .with(csrf().asHeader())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.token").value("jwt-token"));
   }
 
   @Test
@@ -82,6 +131,7 @@ class SecurityFilterChainTest {
         .perform(
             post("/api/events")
                 .with(authentication(principalAuthentication(Role.USER, false, true)))
+                .with(csrf().asHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validEventRequest())))
         .andExpect(status().isCreated());

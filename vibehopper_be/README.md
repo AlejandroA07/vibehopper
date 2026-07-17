@@ -95,6 +95,19 @@ Database variables have dev-safe defaults. Set `JWT_SECRET_KEY` via OS environme
 
 Swagger UI available at `http://localhost:8080/swagger-ui/index.html` when the app is running.
 
+## CSRF protection
+
+Browser clients must obtain a CSRF token before sending `POST`, `PUT`, `PATCH`, or `DELETE`
+requests:
+
+1. Send `GET /api/csrf` with credentials enabled.
+2. Retain the `XSRF-TOKEN` cookie from the response.
+3. Send the response's `token` value in the header named by `headerName` (currently
+   `X-XSRF-TOKEN`) with every unsafe request.
+
+This applies to registration and login as well as authenticated event and administration
+requests. JWT access tokens continue to use the `Authorization: Bearer ...` header.
+
 ## Verify
 
 From the repository root:
